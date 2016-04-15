@@ -2,9 +2,7 @@
 
 buildscript {
     repositories {
-       // jcenter()
-        maven { url 'http://spdm0231a.juniper.com:8070/artifactory/repo1' }
-        maven { url 'http://spdm0231a.juniper.com:8070/artifactory/libs-releases' }
+        jcenter()
     }
 
     dependencies {
@@ -15,6 +13,6 @@ buildscript {
 
 allprojects {
     repositories {
-        //jcenter()
+        jcenter()
     }
 }
