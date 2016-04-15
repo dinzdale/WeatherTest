@@ -20,7 +20,10 @@ import android.widget.Toast;
 
 
 import com.google.gson.Gson;
+import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Subscribe;
+import com.squareup.picasso.OkHttpDownloader;
+import com.squareup.picasso.Picasso;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -75,6 +78,16 @@ public class MainActivity extends WeatherActivity {
         View v = (View) getLayoutInflater().inflate(R.layout.weather_panel_layout, null);
         fl.addView(v);
         twoPane = (FrameLayout) v.findViewById(R.id.weather_details_container) != null;
+        // init Picasso
+//        OkHttpClient okHttpClient = new OkHttpClient();
+//        okHttpClient.setCache(MemoryCache.getInstance(50));
+//        Picasso.Builder builder = new Picasso.Builder(this);
+//        builder.memoryCache(MemoryCache.getInstance(50))
+//                .downloader(new OkHttpDownloader( new OkHttpClient()))
+//                .indicatorsEnabled(true);
+//        Picasso.setSingletonInstance(builder.build());
+
+        //
         Intent intent = new Intent(this, FetchForecastService.class);
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
     }
@@ -172,8 +185,7 @@ public class MainActivity extends WeatherActivity {
         int fragCount = fm.getBackStackEntryCount();
         if (fragCount > 0) {
             fm.popBackStack();
-        }
-        else {
+        } else {
             super.onBackPressed();
         }
 

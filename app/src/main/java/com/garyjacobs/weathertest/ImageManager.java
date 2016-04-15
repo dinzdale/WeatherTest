@@ -37,17 +37,18 @@ import retrofit.Retrofit;
 /**
  * Created by gjacobs on 11/5/15.
  */
-public class ImageManager extends LruCache<String, Bitmap> {
-    ExecutorService fixedThreadPool;
+public class ImageManager {
+    private ExecutorService fixedThreadPool;
+    private final MemoryCache memoryCache;
 
     public ImageManager(int maxSize) {
-        super(maxSize);
+        memoryCache = MemoryCache.getInstance(maxSize);
         fixedThreadPool = Executors.newFixedThreadPool(10);
     }
 
     public void setImage(String icon, ImageView image) {
         Bitmap bitmap;
-        if ((bitmap = get(icon)) == null) {
+        if ((bitmap = memoryCache.get(icon)) == null) {
             loadImageViewOld(icon, image);
             //loadImageViewNew(icon, image);
         } else {
@@ -71,7 +72,7 @@ public class ImageManager extends LruCache<String, Bitmap> {
                     HttpURLConnection httpURLConnection = (HttpURLConnection) bmURL.openConnection();
                     InputStream inputStream = httpURLConnection.getInputStream();
                     bitmap = BitmapFactory.decodeStream(inputStream);
-                    ImageManager.this.put(icon, bitmap);
+                    ImageManager.this.memoryCache.set(icon, bitmap);
                     inputStream.close();
                     image.post(new Runnable() {
                         @Override
@@ -91,6 +92,7 @@ public class ImageManager extends LruCache<String, Bitmap> {
     /**
      * Using Retrofit to load images.
      * Probably best to use Picaso
+     *
      * @param icon
      * @param image
      */
@@ -109,7 +111,7 @@ public class ImageManager extends LruCache<String, Bitmap> {
             public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
                 try {
                     Bitmap bitmap = BitmapFactory.decodeStream(response.body().byteStream());
-                    ImageManager.this.put(icon, bitmap);
+                    ImageManager.this.memoryCache.set(icon, bitmap);
                     image.setImageBitmap(bitmap);
                 } catch (IOException ioe) {
 

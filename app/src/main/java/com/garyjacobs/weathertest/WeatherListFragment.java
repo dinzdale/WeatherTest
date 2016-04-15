@@ -6,6 +6,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
+import android.text.format.DateFormat;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +17,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.picasso.NetworkPolicy;
+import com.squareup.picasso.Picasso;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import Events.ForecastListSelected;
@@ -25,6 +33,7 @@ import model.ForecastDetails;
  * A simple {@link Fragment} subclass.
  */
 public class WeatherListFragment extends Fragment {
+
 
     private RecyclerView recyclerView;
     private WeatherActivity myActivity;
@@ -37,7 +46,7 @@ public class WeatherListFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        myActivity = (WeatherActivity)getActivity();
+        myActivity = (WeatherActivity) getActivity();
     }
 
     @Override
@@ -64,6 +73,8 @@ public class WeatherListFragment extends Fragment {
         public TextView humidity;
         public TextView description;
         public ImageView weatherIcon;
+        public TextView dayOfWeek_Month_DayOfMonth;
+
 
         public MyViewHolder(View itemView) {
             super(itemView);
@@ -71,6 +82,7 @@ public class WeatherListFragment extends Fragment {
             humidity = (TextView) itemView.findViewById(R.id.humidity);
             description = (TextView) itemView.findViewById(R.id.description);
             weatherIcon = (ImageView) itemView.findViewById(R.id.weather_icon);
+            dayOfWeek_Month_DayOfMonth = (TextView) itemView.findViewById(R.id.dayofweek_month_dayofmonth);
 
         }
 
@@ -105,8 +117,21 @@ public class WeatherListFragment extends Fragment {
             myViewHolder.tempDay.setText(Float.toString(forecastDetailsList.get(position).getTemp().getDay()));
             myViewHolder.humidity.setText(Float.toString(forecastDetailsList.get(position).getHumidity()));
             myViewHolder.description.setText(forecastDetailsList.get(position).getWeather().get(0).getDescription());
-            myActivity.getWeatherApplication().getImageManager().setImage(forecastDetailsList.get(position).getWeather().get(0).getIcon(), myViewHolder.weatherIcon);
+            // set weekday
 
+            Calendar calendar = Calendar.getInstance();
+            Date date = calendar.getTime();
+            long newTimeMillis = date.getTime() + position * 24 * 60 * 60 * 1000;
+            calendar.setTimeInMillis(newTimeMillis);
+            date = calendar.getTime();
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(getString(R.string.dayofweek_month_dayofmonth));
+            myViewHolder.dayOfWeek_Month_DayOfMonth.setText(simpleDateFormat.format(date));
+            //myActivity.getWeatherApplication().getImageManager().setImage(forecastDetailsList.get(position).getWeather().get(0).getIcon(), myViewHolder.weatherIcon);
+            String url = getString(R.string.openweathermap_base_url) + "/img/w/" + forecastDetailsList.get(position).getWeather().get(0).getIcon();
+            Picasso.with(myActivity)
+                    .load(url)
+                    .networkPolicy(NetworkPolicy.NO_CACHE)
+                    .into(myViewHolder.weatherIcon);
         }
 
         @Override

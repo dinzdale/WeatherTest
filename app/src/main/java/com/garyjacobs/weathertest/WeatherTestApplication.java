@@ -3,6 +3,7 @@ package com.garyjacobs.weathertest;
 import android.app.Application;
 
 import com.squareup.otto.Bus;
+import com.squareup.picasso.Picasso;
 
 import model.Forecast;
 
@@ -14,9 +15,19 @@ public class WeatherTestApplication extends Application {
     ImageManager imageManager;
     Bus bus;
 
-    public WeatherTestApplication() {
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        // create Otto bus
         imageManager = new ImageManager(50);
         bus = new Bus();
+
+        // set up Picasso
+        Picasso.Builder builder = new Picasso.Builder(this);
+        builder.indicatorsEnabled(this.getResources().getBoolean(R.bool.picasso_debug));
+        //builder.memoryCache();
+        Picasso.setSingletonInstance(builder.build());
     }
 
     public Forecast getForecast() {

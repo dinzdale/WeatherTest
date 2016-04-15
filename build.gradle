@@ -2,18 +2,19 @@
 
 buildscript {
     repositories {
-        jcenter()
+       // jcenter()
+        maven { url 'http://spdm0231a.juniper.com:8070/artifactory/repo1' }
+        maven { url 'http://spdm0231a.juniper.com:8070/artifactory/libs-releases' }
     }
+
     dependencies {
         classpath 'com.android.tools.build:gradle:1.2.3'
 
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
     }
 }
 
 allprojects {
     repositories {
-        jcenter()
+        //jcenter()
     }
 }
