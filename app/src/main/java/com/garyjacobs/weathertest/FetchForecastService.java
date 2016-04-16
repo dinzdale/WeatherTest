@@ -2,6 +2,7 @@ package com.garyjacobs.weathertest;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -55,11 +56,10 @@ public class FetchForecastService extends Service {
 
         @Override
         public void handleMessage(final Message msg) {
-
+            outBoundMessenger = msg.replyTo;
+            outBoundMessage = Message.obtain();
             switch (msg.what) {
                 case REGISTER_CLIENT:
-                    outBoundMessenger = msg.replyTo;
-                    outBoundMessage = Message.obtain();
                     outBoundMessage.what = CLIENT_REGISTERED;
                     try {
                         outBoundMessenger.send(outBoundMessage);
@@ -75,8 +75,9 @@ public class FetchForecastService extends Service {
                 case SET_CELCIUS:
                     break;
                 case FETCH_CITY_FORECAST:
-                    //DoOldNetworkCall();
-                    DoNewNetworkCall();
+                    Bundle bundle = msg.getData();
+                    String zipcode = bundle.getString("FETCH_CITY_FORECAST");
+                    DoNewNetworkCall(zipcode);
                     break;
             }
         }
@@ -113,14 +114,14 @@ public class FetchForecastService extends Service {
         }).start();
     }
 
-    private void DoNewNetworkCall() {
+    private void DoNewNetworkCall(String city) {
         Retrofit.Builder builder = new Retrofit.Builder();
         builder.baseUrl(getString(R.string.openweathermap_base_url));
         builder.addConverterFactory(GsonConverterFactory.create());
         Retrofit retrofit = builder.build();
         GetForecastData getForecastData = retrofit.create(GetForecastData.class);
         //Call<Forecast> call = getForecastData.getPhillyForecast();
-        Call<Forecast> call = getForecastData.getForecast("08053","imperial",getString(R.string.openweathermap_appid));
+        Call<Forecast> call = getForecastData.getForecast(city,"imperial",getString(R.string.openweathermap_appid));
 
         call.enqueue(new Callback<Forecast>() {
             @Override

@@ -12,10 +12,13 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -38,15 +41,19 @@ import retrofit.Call;
 import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
+import widgets.ComboBox;
 
 public class MainActivity extends WeatherActivity {
 
     public static int FORECASTDATA_FETCHED = 1;
     FrameLayout weatherListContainer;
     FrameLayout weatherDetailsContainer;
+    private ComboBox cityForecastCB;
     boolean twoPane;
     boolean isBound = false;
+    IBinder iBinder;
     Messenger outBoundMessenger;
+    Messenger inBoundMessenger;
     Message outBoundMessage;
 
     @Override
@@ -75,6 +82,29 @@ public class MainActivity extends WeatherActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         FrameLayout fl = (FrameLayout) findViewById(R.id.main_frame_layout);
+        cityForecastCB = (ComboBox) findViewById(R.id.location_cb);
+        cityForecastCB.setClientClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String zipCode = ((TextView) v).getText().toString();
+                if (isBound) {
+//                    Messenger messenger = new Messenger(iBinder);
+                    Message message = Message.obtain();
+                    message.replyTo = inBoundMessenger;
+                    message.what = FetchForecastService.FETCH_CITY_FORECAST;
+                    Bundle bundle = new Bundle();
+                    bundle.putString("FETCH_CITY_FORECAST", zipCode);
+                    message.setData(bundle);
+                    try {
+                        outBoundMessenger.send(message);
+                    }
+                    catch (RemoteException re) {
+                        Log.d(null,re.getMessage(),re);
+                    }
+                }
+
+            }
+        });
         View v = (View) getLayoutInflater().inflate(R.layout.weather_panel_layout, null);
         fl.addView(v);
         twoPane = (FrameLayout) v.findViewById(R.id.weather_details_container) != null;
@@ -134,11 +164,12 @@ public class MainActivity extends WeatherActivity {
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            iBinder = service;
             isBound = true;
-            outBoundMessenger = new Messenger(service);
-
+            outBoundMessenger = new Messenger(iBinder);
+            inBoundMessenger = new Messenger(new IncomingHandler());
             Message msg = Message.obtain();
-            msg.replyTo = new Messenger(new IncomingHandler());
+            msg.replyTo = inBoundMessenger;
             msg.what = FetchForecastService.REGISTER_CLIENT;
             try {
                 outBoundMessenger.send(msg);

@@ -8,4 +8,11 @@
     android:id="@+id/weather_list">
 
 </android.support.v7.widget.RecyclerView>
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPostalAddress"
+        android:ems="10"
+        android:id="@+id/editText" />
 </LinearLayout>
