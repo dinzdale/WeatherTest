@@ -12,13 +12,11 @@ import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.squareup.okhttp.OkHttpClient;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.concurrent.Callable;
 
 import model.Forecast;
 import network.GetForecastData;
@@ -56,10 +54,10 @@ public class FetchForecastService extends Service {
 
         @Override
         public void handleMessage(final Message msg) {
-            outBoundMessenger = msg.replyTo;
             outBoundMessage = Message.obtain();
             switch (msg.what) {
                 case REGISTER_CLIENT:
+                    outBoundMessenger = msg.replyTo;
                     outBoundMessage.what = CLIENT_REGISTERED;
                     try {
                         outBoundMessenger.send(outBoundMessage);
@@ -121,7 +119,7 @@ public class FetchForecastService extends Service {
         Retrofit retrofit = builder.build();
         GetForecastData getForecastData = retrofit.create(GetForecastData.class);
         //Call<Forecast> call = getForecastData.getPhillyForecast();
-        Call<Forecast> call = getForecastData.getForecast(city,"imperial",getString(R.string.openweathermap_appid));
+        Call<Forecast> call = getForecastData.getForecast(city, "imperial", getString(R.string.openweathermap_appid));
 
         call.enqueue(new Callback<Forecast>() {
             @Override

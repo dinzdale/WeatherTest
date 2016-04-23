@@ -5,14 +5,22 @@
     android:layout_height="match_parent"
     android:orientation="horizontal">
 
-    <EditText
+    <AutoCompleteTextView
         android:id="@+id/the_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:singleLine="true"
         android:text="08057"/>
+    <!--<EditText-->
+    <!--android:id="@+id/the_text"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:text="08057"-->
+    <!--android:singleLine="true"-->
+    <!--android:editable="true"/>-->
 
-    <Spinner
-        android:id="@+id/the_spinner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"></Spinner>
+    <!--<Spinner-->
+    <!--android:id="@+id/the_spinner"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"></Spinner>-->
 </LinearLayout>

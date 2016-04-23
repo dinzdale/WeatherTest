@@ -5,42 +5,21 @@ import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
-
-import com.google.gson.Gson;
-import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Subscribe;
-import com.squareup.picasso.OkHttpDownloader;
-import com.squareup.picasso.Picasso;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import Events.ForecastListSelected;
-import model.Forecast;
-import model.ForecastDetails;
-import network.GetForecastData;
-import retrofit.Call;
-import retrofit.GsonConverterFactory;
-import retrofit.Response;
-import retrofit.Retrofit;
 import widgets.ComboBox;
 
 public class MainActivity extends WeatherActivity {
@@ -86,20 +65,18 @@ public class MainActivity extends WeatherActivity {
         cityForecastCB.setClientClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String zipCode = ((TextView) v).getText().toString();
+                //currentZip = ((TextView) v).getText().toString();
                 if (isBound) {
-//                    Messenger messenger = new Messenger(iBinder);
                     Message message = Message.obtain();
                     message.replyTo = inBoundMessenger;
                     message.what = FetchForecastService.FETCH_CITY_FORECAST;
                     Bundle bundle = new Bundle();
-                    bundle.putString("FETCH_CITY_FORECAST", zipCode);
+                    bundle.putString("FETCH_CITY_FORECAST", cityForecastCB.getCurrentLocation());
                     message.setData(bundle);
                     try {
                         outBoundMessenger.send(message);
-                    }
-                    catch (RemoteException re) {
-                        Log.d(null,re.getMessage(),re);
+                    } catch (RemoteException re) {
+                        Log.d(null, re.getMessage(), re);
                     }
                 }
 
@@ -128,6 +105,9 @@ public class MainActivity extends WeatherActivity {
             switch (msg.what) {
                 case FetchForecastService.CLIENT_REGISTERED:
                     outBoundMessage = Message.obtain();
+                    Bundle bundle = new Bundle();
+                    bundle.putString("FETCH_CITY_FORECAST", cityForecastCB.getCurrentLocation());
+                    outBoundMessage.setData(bundle);
                     outBoundMessage.what = FetchForecastService.FETCH_CITY_FORECAST;
                     try {
                         outBoundMessenger.send(outBoundMessage);
