@@ -5,6 +5,7 @@ import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -17,14 +18,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.squareup.otto.Subscribe;
 
 import Events.ForecastListSelected;
 import widgets.ComboBox;
 
-public class MainActivity extends WeatherActivity {
+public class MainActivity extends WeatherActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     public static int FORECASTDATA_FETCHED = 1;
+    private GoogleApiClient mGoogleAPIClient;
     FrameLayout weatherListContainer;
     FrameLayout weatherDetailsContainer;
     private ComboBox cityForecastCB;
@@ -34,6 +39,18 @@ public class MainActivity extends WeatherActivity {
     Messenger outBoundMessenger;
     Messenger inBoundMessenger;
     Message outBoundMessage;
+
+    @Override
+    protected void onStart() {
+        mGoogleAPIClient.connect();
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        mGoogleAPIClient.disconnect();
+        super.onStop();
+    }
 
     @Override
     protected void onResume() {
@@ -60,6 +77,11 @@ public class MainActivity extends WeatherActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mGoogleAPIClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
         FrameLayout fl = (FrameLayout) findViewById(R.id.main_frame_layout);
         cityForecastCB = (ComboBox) findViewById(R.id.location_cb);
         cityForecastCB.setClientClickListener(new View.OnClickListener() {
@@ -85,16 +107,7 @@ public class MainActivity extends WeatherActivity {
         View v = (View) getLayoutInflater().inflate(R.layout.weather_panel_layout, null);
         fl.addView(v);
         twoPane = (FrameLayout) v.findViewById(R.id.weather_details_container) != null;
-        // init Picasso
-//        OkHttpClient okHttpClient = new OkHttpClient();
-//        okHttpClient.setCache(MemoryCache.getInstance(50));
-//        Picasso.Builder builder = new Picasso.Builder(this);
-//        builder.memoryCache(MemoryCache.getInstance(50))
-//                .downloader(new OkHttpDownloader( new OkHttpClient()))
-//                .indicatorsEnabled(true);
-//        Picasso.setSingletonInstance(builder.build());
 
-        //
         Intent intent = new Intent(this, FetchForecastService.class);
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
     }
@@ -199,6 +212,25 @@ public class MainActivity extends WeatherActivity {
         } else {
             super.onBackPressed();
         }
+
+    }
+
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleAPIClient);
+        if (lastLocation != null) {
+           
+        }
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
 
     }
 }
