@@ -19,4 +19,8 @@ public interface GetForecastData {
 
     @GET("/data/2.5/forecast/daily?q=Philadelphia&mode=json&units=imperial&cnt=16&appid=0ff4cd732ec220998352961a3c4f2980")
     Call<Forecast> getPhillyForecast();
+
+    @GET("/data/2.5/forecast/daily/?mode=json")
+    Call<Forecast> getForecastByZip(@Query("zip") String zip, @Query("units") String units, @Query("appid") String appid);
+
 }

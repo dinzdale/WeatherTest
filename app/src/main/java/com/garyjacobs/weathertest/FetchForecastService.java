@@ -75,7 +75,9 @@ public class FetchForecastService extends Service {
                 case FETCH_CITY_FORECAST:
                     Bundle bundle = msg.getData();
                     String zipcode = bundle.getString("FETCH_CITY_FORECAST");
-                    DoNewNetworkCall(zipcode);
+                    if (zipcode.length() > 0) {
+                        DoNewNetworkCall(zipcode);
+                    }
                     break;
             }
         }
@@ -112,14 +114,15 @@ public class FetchForecastService extends Service {
         }).start();
     }
 
-    private void DoNewNetworkCall(String city) {
+    private void DoNewNetworkCall(String zip) {
         Retrofit.Builder builder = new Retrofit.Builder();
         builder.baseUrl(getString(R.string.openweathermap_base_url));
         builder.addConverterFactory(GsonConverterFactory.create());
         Retrofit retrofit = builder.build();
         GetForecastData getForecastData = retrofit.create(GetForecastData.class);
         //Call<Forecast> call = getForecastData.getPhillyForecast();
-        Call<Forecast> call = getForecastData.getForecast(city, "imperial", getString(R.string.openweathermap_appid));
+          Call<Forecast> call = getForecastData.getForecast(zip, "imperial", getString(R.string.openweathermap_appid));
+      //  Call<Forecast> call = getForecastData.getForecastByZip(zip, "imperial", getString(R.string.openweathermap_appid));
 
         call.enqueue(new Callback<Forecast>() {
             @Override

@@ -21,7 +21,7 @@ public class ComboBox extends AutoCompleteTextView {
     private OnClickListener clientClickListener;
 
 
-    private String[] testValue = {"CURRENT LOCATION", "08057", "Lisbon", "Plainview, NY", "Plainview, TX"};
+   // private String[] testValue = {"CURRENT LOCATION", "08057", "Lisbon", "Plainview, NY", "Plainview, TX"};
 
     public ComboBox(Context context) {
         super(context);
@@ -90,7 +90,7 @@ public class ComboBox extends AutoCompleteTextView {
         super.performFiltering("", 0);
     }
 
-    private ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_dropdown_item_1line, testValue);
+    private ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_dropdown_item_1line);
 
 
 }

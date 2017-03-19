@@ -9,7 +9,7 @@
         android:layout_height="match_parent"
         android:id="@+id/weather_list_container"
         android:background="@color/background_material_dark"
-        android:layout_weight=".5">
+        android:layout_weight="1">
 
     </FrameLayout>
 
@@ -18,7 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/background_material_light"
-        android:layout_weight=".5">
+        android:layout_weight="1">
 
     </FrameLayout>
 </LinearLayout>

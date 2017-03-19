@@ -3,7 +3,7 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:id="@+id/card_view"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:layout_gravity="center"
     card_view:cardCornerRadius="4dp"
     card_view:cardElevation="10dp">
@@ -16,9 +16,6 @@
             android:id="@+id/weather_icon"
             android:layout_width="250px"
             android:layout_height="250px"
-            android:layout_alignParentLeft="false"
-            android:layout_alignParentRight="false"
-            android:layout_alignParentTop="false"
             android:layout_below="@+id/dayofweek_month_dayofmonth"
             android:layout_alignLeft="@+id/dayofweek_month_dayofmonth" />
 
