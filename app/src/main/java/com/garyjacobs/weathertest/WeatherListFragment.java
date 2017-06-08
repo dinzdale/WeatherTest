@@ -126,12 +126,12 @@ public class WeatherListFragment extends Fragment {
             date = calendar.getTime();
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(getString(R.string.dayofweek_month_dayofmonth));
             myViewHolder.dayOfWeek_Month_DayOfMonth.setText(simpleDateFormat.format(date));
-            //myActivity.getWeatherApplication().getImageManager().setImage(forecastDetailsList.get(position).getWeather().get(0).getIcon(), myViewHolder.weatherIcon);
-            String url = getString(R.string.openweathermap_base_url) + "/img/w/" + forecastDetailsList.get(position).getWeather().get(0).getIcon();
-            Picasso.with(myActivity)
-                    .load(url)
-                    .networkPolicy(NetworkPolicy.NO_CACHE)
-                    .into(myViewHolder.weatherIcon);
+            myActivity.getWeatherApplication().getImageManager().setImage(forecastDetailsList.get(position).getWeather().get(0).getIcon(), myViewHolder.weatherIcon);
+//            String url = getString(R.string.openweathermap_base_url) + "/img/w/" + forecastDetailsList.get(position).getWeather().get(0).getIcon();
+//            Picasso.with(myActivity)
+//                    .load(url)
+//                    .networkPolicy(NetworkPolicy.NO_CACHE)
+//                    .into(myViewHolder.weatherIcon);
         }
 
         @Override
