@@ -121,8 +121,8 @@ public class FetchForecastService extends Service {
         Retrofit retrofit = builder.build();
         GetForecastData getForecastData = retrofit.create(GetForecastData.class);
         //Call<Forecast> call = getForecastData.getPhillyForecast();
-          Call<Forecast> call = getForecastData.getForecast(zip, "imperial", getString(R.string.openweathermap_appid));
-      //  Call<Forecast> call = getForecastData.getForecastByZip(zip, "imperial", getString(R.string.openweathermap_appid));
+        // Call<Forecast> call = getForecastData.getForecast(zip, "imperial", getString(R.string.openweathermap_appid));
+        Call<Forecast> call = getForecastData.getForecastByZip(zip, "imperial", getString(R.string.openweathermap_appid));
 
         call.enqueue(new Callback<Forecast>() {
             @Override

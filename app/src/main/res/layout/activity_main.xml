@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,18 +9,31 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity">
 
-    <widgets.ComboBox
-        android:id="@+id/location_cb"
+    <ProgressBar
+        android:id="@+id/progress_bar"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="@android:color/holo_red_light"
-        android:completionThreshold="1"
-        android:lines="1"/>
+        android:layout_height="match_parent" />
 
-    <FrameLayout
-        android:id="@+id/main_frame_layout"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    </FrameLayout>
-</LinearLayout>
+        <widgets.ComboBox
+            android:id="@+id/location_cb"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@android:color/holo_red_light"
+            android:completionThreshold="1"
+            android:lines="1"
+            android:visibility="invisible"/>
+
+
+        <FrameLayout
+            android:id="@+id/main_frame_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </FrameLayout>
+    </LinearLayout>
+</FrameLayout>

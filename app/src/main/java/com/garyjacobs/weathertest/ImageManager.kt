@@ -22,7 +22,7 @@ import android.util.Log
  */
 class ImageManager(maxSize: Int) {
 
-    private final val memoryCache: MemoryCache=MemoryCache.getInstance(maxSize)
+    private final val memoryCache: MemoryCache = MemoryCache.getInstance(maxSize)
     private final val TAG = "ImageManager"
 
     fun setImage(icon: String, image: ImageView) {
@@ -51,41 +51,38 @@ class ImageManager(maxSize: Int) {
         }
     }
 
-    fun log(s: String): Int = Log.d(TAG,"${Thread.currentThread().name} : ${s}")
+    fun log(s: String): Int = Log.d(TAG, "${Thread.currentThread().name} : ${s}")
 
-    inner class BitMapObserver(image: ImageView) : SingleObserver<Pair<String, Bitmap?>> {
+    inner class BitMapObserver(val image: ImageView) : SingleObserver<Pair<String, Bitmap?>> {
+        override fun onError(e: Throwable) {
+            log("BitMapObserver::onError")
+            e!!.printStackTrace()
 
-        val image: ImageView = image
+        }
 
-        override fun onSubscribe(d: Disposable?) {
+        override fun onSubscribe(d: Disposable) {
             log("BitMapObserver::onSubscribe")
         }
 
-        override fun onSuccess(pair: Pair<String, Bitmap?>?) {
+        override fun onSuccess(pair: Pair<String, Bitmap?>) {
             log("BitMapObserver::onSuccess")
             pair?.second?.let {
                 memoryCache.set(pair.first, pair.second)
                 image.setImageBitmap(pair.second)
             }
         }
-
-        override fun onError(e: Throwable?) {
-            log("BitMapObserver::onError")
-            e!!.printStackTrace()
-        }
-
     }
+
 
     @Throws(Exception::class)
     fun oldBitmapFetcher(url: String): Bitmap {
-        log("oldBitmapFetcher")
         val httpURLConnection = URL(url).openConnection() as HttpURLConnection
         val inputStream = httpURLConnection.inputStream
         val bitmap: Bitmap = BitmapFactory.decodeStream(inputStream)
         return bitmap
     }
 
-
+}
 //    private fun loadImageViewOld(icon: String, image: ImageView) {
 //
 //
@@ -136,4 +133,4 @@ class ImageManager(maxSize: Int) {
 //
 //    }
 
-}
+//}

@@ -20,12 +20,9 @@ class ComboBox : AppCompatAutoCompleteTextView {
 
     private var clientClickListener: View.OnClickListener? = null
 
-
-    constructor(context: Context) : super(context) {}
-
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {}
-
-    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {}
+    constructor(context: Context?) : super(context)
+    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
     fun setClientClickListener(clientClickListener: View.OnClickListener) {
         this.clientClickListener = clientClickListener
@@ -39,8 +36,8 @@ class ComboBox : AppCompatAutoCompleteTextView {
                 retValue = true
                 dismissKeyboard()
                 dismissDropDown()
-                if (clientClickListener != null) {
-                    clientClickListener!!.onClick(v)
+                clientClickListener?.let {
+                    it.onClick(v)
                 }
             }
             retValue
@@ -67,14 +64,14 @@ class ComboBox : AppCompatAutoCompleteTextView {
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
-    val currentLocation: String
-        get() = text.toString()
-
     override fun performFiltering(text: CharSequence, keyCode: Int) {
         super.performFiltering("", 0)
     }
 
     private val arrayAdapter = ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line)
 
+    fun getCurrentText() : String? {
+        return text.toString()
+    }
 
 }
