@@ -13,6 +13,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.MultiAutoCompleteTextView
 import android.widget.TextView
 
 
@@ -70,8 +71,11 @@ class ComboBox : AppCompatAutoCompleteTextView {
 
     private val arrayAdapter = ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line)
 
+    val cannedList = arrayListOf<String>("11803,08057,22334")
+
     fun getCurrentText() : String? {
         return text.toString()
     }
+
 
 }
