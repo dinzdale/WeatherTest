@@ -85,18 +85,44 @@ class WeatherMainActivity : WeatherActivity() {
                         outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
                     }
                     LocaterService.REQUESTEDCURRENTLOCATION -> {
-                        val address = message.data.get("LOCATION") as Address
-                        supportActionBar?.title = address.locality
                         progress_bar.visibility = View.INVISIBLE
                         location_cb.visibility = View.VISIBLE
+                        val addresses = message.data.get("LOCATION") as Array<Address>
+                        supportActionBar?.title = addresses[0].locality
+                        if (message.data.get("STATUS") as Boolean) {
+                            LoadWeatherListFragment()
+                        }
                     }
                     LocaterService.REQUESTEDLOCATION -> {
-                        val address = message.data.get("LOCATION") as Address
-                        supportActionBar?.title = "${address.locality} ${address.postalCode}"
+                        val addresses = message.data.get("LOCATION") as Array<Address>
+                        if (addresses.size == 1) {
+                            supportActionBar?.title = addresses[0].locality
+                            if (message.data.get("STATUS") as Boolean) {
+                                LoadWeatherListFragment()
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    private fun LoadWeatherListFragment() {
+        fragmentManager
+                .beginTransaction()
+                .replace(R.id.weather_list_container, WeatherListFragment())
+                .commit()
+    }
+
+    private fun LoadForecastDetailsFragment(position: Int) {
+        val ft = fragmentManager.beginTransaction()
+        if (isTwoPane) {
+            ft.replace(R.id.weather_details_container, ForecastDetailsFragment.newInstance(position))
+        } else {
+            ft.replace(R.id.weather_list_container, ForecastDetailsFragment.newInstance(position))
+            ft.addToBackStack("WeatherDetails")
+        }
+        ft.commit()
     }
 
     fun Messenger.sendMessage(what: Int, bundle: Bundle? = null, outMessenger: Messenger = outboundMessenger, inMessenger: Messenger = inboundMessenger) {
