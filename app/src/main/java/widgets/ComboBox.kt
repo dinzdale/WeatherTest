@@ -1,6 +1,7 @@
 package widgets
 
 import android.content.Context
+import android.location.Address
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -9,6 +10,7 @@ import android.support.v7.widget.AppCompatAutoCompleteTextView
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
@@ -45,7 +47,8 @@ class ComboBox : AppCompatAutoCompleteTextView {
         }
 
 
-        setAdapter(arrayAdapter)
+        setAdapter(ArrayAdapter<String>(context,android.R.layout.simple_dropdown_item_1line,arrayOf()))
+
         onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 if (clientClickListener != null) {
@@ -60,6 +63,17 @@ class ComboBox : AppCompatAutoCompleteTextView {
 
     }
 
+    fun updateComboBoxSelections(addresses: Array<Address>) {
+        val newList = MutableList<String>(addresses.size,{index -> addresses[index].getAddressLine(0) })
+        val theAdapter = adapter as ArrayAdapter<String>
+        theAdapter.clear()
+        theAdapter.addAll(newList)
+        theAdapter.notifyDataSetChanged()
+    }
+
+    fun Address.toString() : String {
+        return this.getAddressLine(0)
+    }
     private fun dismissKeyboard() {
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(windowToken, 0)
@@ -69,11 +83,8 @@ class ComboBox : AppCompatAutoCompleteTextView {
         super.performFiltering("", 0)
     }
 
-    private val arrayAdapter = ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line)
 
-    val cannedList = arrayListOf<String>("11803,08057,22334")
-
-    fun getCurrentText() : String? {
+    fun getCurrentText(): String? {
         return text.toString()
     }
 

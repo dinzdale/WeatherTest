@@ -69,6 +69,9 @@ class LocaterService : Service() {
                                 if (addressList.size == 1) {
                                     FetchForecastServiceForcastData(REQUESTEDLOCATION, bundle)
                                 }
+                                else {
+                                    outboundmessenger.sendMessage(REQUESTEDLOCATION,bundle)
+                                }
                             }
                         }
                         else -> {

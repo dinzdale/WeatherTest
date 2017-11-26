@@ -56,6 +56,9 @@ class WeatherMainActivity : WeatherActivity() {
                     bundle.putString("LOCATION", it)
                     outboundMessenger.sendMessage(LocaterService.REQUESTLOCATION, bundle)
                 }
+                else {
+                    outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
+                }
             }
         }
     }
@@ -88,7 +91,7 @@ class WeatherMainActivity : WeatherActivity() {
                         progress_bar.visibility = View.INVISIBLE
                         location_cb.visibility = View.VISIBLE
                         val addresses = message.data.get("LOCATION") as Array<Address>
-                        supportActionBar?.title = addresses[0].locality
+                        supportActionBar?.title = addresses[0].getAddressLine(0)
                         if (message.data.get("STATUS") as Boolean) {
                             LoadWeatherListFragment()
                         }
@@ -96,10 +99,13 @@ class WeatherMainActivity : WeatherActivity() {
                     LocaterService.REQUESTEDLOCATION -> {
                         val addresses = message.data.get("LOCATION") as Array<Address>
                         if (addresses.size == 1) {
-                            supportActionBar?.title = addresses[0].locality
+                            supportActionBar?.title = addresses[0].getAddressLine(0)
                             if (message.data.get("STATUS") as Boolean) {
                                 LoadWeatherListFragment()
                             }
+                        }
+                        else {
+                            location_cb.updateComboBoxSelections(addresses)
                         }
                     }
                 }
