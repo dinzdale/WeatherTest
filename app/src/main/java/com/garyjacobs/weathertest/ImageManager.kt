@@ -26,16 +26,16 @@ class ImageManager(maxSize: Int) {
     private final val TAG = "ImageManager"
 
     fun setImage(icon: String, image: ImageView) {
-        val bitmap: Bitmap? = (memoryCache.get(icon))
-        if (bitmap == null) {
-            val url = "${image.resources.getString(R.string.openweathermap_base_url)}/img/w/$icon"
+
+        val url = "${image.resources.getString(R.string.openweathermap_base_url)}/img/w/$icon"
+        val bitmap: Bitmap? = memoryCache.get(url)
+        if (bitmap != null) {
+            image.setImageBitmap(bitmap)
+        } else {
             getBitmapObservable(url, this::oldBitmapFetcher)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(BitMapObserver(image))
-
-        } else {
-            image.setImageBitmap(bitmap)
         }
     }
 
@@ -56,7 +56,7 @@ class ImageManager(maxSize: Int) {
     inner class BitMapObserver(val image: ImageView) : SingleObserver<Pair<String, Bitmap?>> {
         override fun onError(e: Throwable) {
             log("BitMapObserver::onError")
-            e!!.printStackTrace()
+            e.printStackTrace()
 
         }
 
@@ -77,9 +77,7 @@ class ImageManager(maxSize: Int) {
     @Throws(Exception::class)
     fun oldBitmapFetcher(url: String): Bitmap {
         val httpURLConnection = URL(url).openConnection() as HttpURLConnection
-        val inputStream = httpURLConnection.inputStream
-        val bitmap: Bitmap = BitmapFactory.decodeStream(inputStream)
-        return bitmap
+        return BitmapFactory.decodeStream(httpURLConnection.inputStream)
     }
 
 }

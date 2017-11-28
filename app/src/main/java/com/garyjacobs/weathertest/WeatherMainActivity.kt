@@ -29,7 +29,7 @@ class WeatherMainActivity : WeatherActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        location_cb.setClientClickListener(locationClickListener)
+        location_cb.setOnClickListener(locationClickListener)
         val view = layoutInflater.inflate(R.layout.weather_panel_layout, null)
         main_frame_layout.addView(view)
         isTwoPane = view.weather_details_container == null

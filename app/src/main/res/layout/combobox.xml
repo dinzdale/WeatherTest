@@ -9,19 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:singleLine="true"
-        android:text="08057"
         android:completionThreshold="1"
         android:dropDownWidth="match_parent"/>
-    <!--<EditText-->
-    <!--android:id="@+id/the_text"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:text="08057"-->
-    <!--android:singleLine="true"-->
-    <!--android:editable="true"/>-->
 
-    <!--<Spinner-->
-    <!--android:id="@+id/the_spinner"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"></Spinner>-->
 </FrameLayout>
