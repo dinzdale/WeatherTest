@@ -1,5 +1,6 @@
 package com.garyjacobs.weathertest
 
+import Events.ForecastListSelected
 import android.Manifest
 import android.content.ComponentName
 import android.content.Context
@@ -13,6 +14,7 @@ import android.os.*
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.view.View
+import com.squareup.otto.Subscribe
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.weather_panel_layout.view.*
 import widgets.ComboBox
@@ -32,7 +34,7 @@ class WeatherMainActivity : WeatherActivity() {
         location_cb.setOnClickListener(locationClickListener)
         val view = layoutInflater.inflate(R.layout.weather_panel_layout, null)
         main_frame_layout.addView(view)
-        isTwoPane = view.weather_details_container == null
+        isTwoPane = view.weather_details_container != null
     }
 
     val serviceConnection = object : ServiceConnection {
@@ -55,8 +57,7 @@ class WeatherMainActivity : WeatherActivity() {
                     val bundle = Bundle()
                     bundle.putString("LOCATION", it)
                     outboundMessenger.sendMessage(LocaterService.REQUESTLOCATION, bundle)
-                }
-                else {
+                } else {
                     outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
                 }
             }
@@ -103,8 +104,7 @@ class WeatherMainActivity : WeatherActivity() {
                             if (message.data.get("STATUS") as Boolean) {
                                 LoadWeatherListFragment()
                             }
-                        }
-                        else {
+                        } else {
                             location_cb.updateComboBoxSelections(addresses)
                         }
                     }
@@ -120,16 +120,19 @@ class WeatherMainActivity : WeatherActivity() {
                 .commit()
     }
 
-    private fun LoadForecastDetailsFragment(position: Int) {
+    private fun LoadForecastDetailsFragment(selectedPostion: Int) {
+        val detailsFragment = ForecastDetailsFragment.newInstance(selectedPostion)
         val ft = fragmentManager.beginTransaction()
         if (isTwoPane) {
-            ft.replace(R.id.weather_details_container, ForecastDetailsFragment.newInstance(position))
+            ft.replace(R.id.weather_details_container, detailsFragment)
+
         } else {
-            ft.replace(R.id.weather_list_container, ForecastDetailsFragment.newInstance(position))
-            ft.addToBackStack("WeatherDetails")
+            ft.replace(R.id.weather_list_container, detailsFragment)
+            ft.addToBackStack(ForecastDetailsFragment::class.java.name)
         }
         ft.commit()
     }
+
 
     fun Messenger.sendMessage(what: Int, bundle: Bundle? = null, outMessenger: Messenger = outboundMessenger, inMessenger: Messenger = inboundMessenger) {
         val outboundmessage = Message.obtain()
@@ -142,4 +145,19 @@ class WeatherMainActivity : WeatherActivity() {
             e.printStackTrace()
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        weatherApplication.bus.register(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        weatherApplication.bus.unregister(this)
+    }
+
+    // get selections from list
+    @Subscribe
+    fun ForcastSelect(event: ForecastListSelected) = LoadForecastDetailsFragment(event.selectedItem)
+
 }
