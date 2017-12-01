@@ -9,8 +9,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
@@ -30,7 +32,7 @@ import model.Weather
 class ForecastDetailsFragment : Fragment() {
 
     private lateinit var myActivity: WeatherActivity
-    private lateinit var location : Address
+    private lateinit var location: Address
     private var index: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,9 +61,10 @@ class ForecastDetailsFragment : Fragment() {
     val mapReadyImp = object : OnMapReadyCallback {
         override fun onMapReady(googleMap: GoogleMap?) {
             googleMap?.let {
-                val options = MarkerOptions()
-                        .position(LatLng(location.latitude,location.longitude))
-                googleMap.addMarker(options)
+                val latlon = LatLng(location.latitude, location.longitude)
+                it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 10.toFloat()))
+                it.addMarker(MarkerOptions()
+                        .position(latlon))
             }
         }
     }
