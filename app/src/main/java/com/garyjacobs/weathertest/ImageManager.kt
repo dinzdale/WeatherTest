@@ -66,7 +66,7 @@ class ImageManager(maxSize: Int) {
 
         override fun onSuccess(pair: Pair<String, Bitmap?>) {
             log("BitMapObserver::onSuccess")
-            pair?.second?.let {
+            pair.second?.let {
                 memoryCache.set(pair.first, pair.second)
                 image.setImageBitmap(pair.second)
             }

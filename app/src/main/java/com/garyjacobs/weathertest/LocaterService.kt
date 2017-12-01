@@ -28,7 +28,7 @@ class LocaterService : Service() {
         val REQUESTLOCATION = 4
         val REQUESTEDLOCATION = -4
     }
-
+    private lateinit var application : WeatherTestApplication
     private lateinit var googleAPIClient: GoogleApiClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var outboundmessenger: Messenger
@@ -38,6 +38,7 @@ class LocaterService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        application = getApplication() as WeatherTestApplication
         initLocationServices()
     }
 
@@ -55,8 +56,10 @@ class LocaterService : Service() {
                             lastLocation?.let {
                                 val bundle = Bundle()
                                 val addressList = Geocoder(this@LocaterService).getFromLocation(it.latitude, it.longitude, 1)
+                                application.location = addressList[0]
                                 bundle.putParcelableArray("LOCATION", addressList.toTypedArray())
                                 FetchForecastServiceForcastData(REQUESTEDCURRENTLOCATION, bundle)
+
                             }
                             //?: LocationServices.FusedLocationApi.requestLocationUpdates(googleAPIClient, locationRequest, locationChangeListner)
                         }
@@ -67,6 +70,7 @@ class LocaterService : Service() {
                                 val bundle = Bundle()
                                 bundle.putParcelableArray("LOCATION",addressList.toTypedArray())
                                 if (addressList.size == 1) {
+                                    application.location = addressList[0]
                                     FetchForecastServiceForcastData(REQUESTEDLOCATION, bundle)
                                 }
                                 else {
@@ -131,7 +135,6 @@ class LocaterService : Service() {
 
 
     private fun FetchForecastServiceForcastData(what: Int, bundle: Bundle) {
-        val application: WeatherTestApplication = application as WeatherTestApplication
         val addresses = bundle.get("LOCATION") as Array<Address>
         val res = application.resources
         val builder = Retrofit.Builder()

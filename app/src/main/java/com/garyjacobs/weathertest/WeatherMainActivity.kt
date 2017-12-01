@@ -121,7 +121,7 @@ class WeatherMainActivity : WeatherActivity() {
     }
 
     private fun LoadForecastDetailsFragment(selectedPostion: Int) {
-        val detailsFragment = ForecastDetailsFragment.newInstance(selectedPostion)
+        val detailsFragment = ForecastDetailsFragment.newInstance(selectedPostion,weatherApplication.location!!)
         val ft = fragmentManager.beginTransaction()
         if (isTwoPane) {
             ft.replace(R.id.weather_details_container, detailsFragment)
