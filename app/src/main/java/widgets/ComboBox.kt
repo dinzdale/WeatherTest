@@ -24,6 +24,7 @@ class ComboBox : AppCompatAutoCompleteTextView {
 
 
     init {
+
         onItemClickListener = object : AdapterView.OnItemClickListener {
             override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 performCompletion()
@@ -49,7 +50,7 @@ class ComboBox : AppCompatAutoCompleteTextView {
         super.onAttachedToWindow()
         setOnEditorActionListener { v, actionId, event ->
             var retValue = false
-            if (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN) {
+            if (actionId == KeyEvent.KEYCODE_CALL || actionId == KeyEvent.KEYCODE_ENDCALL) {
                 (adapter as ArrayAdapter<String>).clear()
                 retValue = true
                 dismissKeyboard()

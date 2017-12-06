@@ -25,6 +25,7 @@
             android:layout_height="50dp"
             android:background="@android:color/holo_red_light"
             android:completionThreshold="1"
+            android:singleLine="true"
             android:lines="1"
             android:visibility="invisible"/>
 
