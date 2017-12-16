@@ -3,16 +3,15 @@ package network;
 import android.graphics.Bitmap;
 
 import com.garyjacobs.weathertest.R;
-import com.squareup.okhttp.ResponseBody;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import retrofit.Call;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.Query;
-import retrofit.http.Url;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
+
 
 /**
  * Created by gjacobs on 11/11/15.

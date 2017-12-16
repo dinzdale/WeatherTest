@@ -1,10 +1,9 @@
 package com.garyjacobs.weathertest
 
 import android.app.Application
-
+import  android.location.Address
 import com.squareup.otto.Bus
 import com.squareup.picasso.Picasso
-import  android.location.Address
 import model.Forecast
 
 /**

@@ -6,8 +6,6 @@ import android.view.View
 
 import android.widget.ImageView
 
-import io.reactivex.*
-
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -16,14 +14,18 @@ import java.net.URL
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import android.util.Log
+import android.util.LruCache
+import io.reactivex.Single
+import io.reactivex.SingleObserver
 
 /**
  * Created by gjacobs on 11/5/15.
  */
 class ImageManager(maxSize: Int) {
 
-    private final val memoryCache: MemoryCache = MemoryCache.getInstance(maxSize)
-    private final val TAG = "ImageManager"
+    private val memoryCache = LruCache<String,Bitmap>(maxSize)
+
+    private val TAG: String = "ImageManager"
 
     fun setImage(icon: String, image: ImageView) {
 
@@ -67,7 +69,7 @@ class ImageManager(maxSize: Int) {
         override fun onSuccess(pair: Pair<String, Bitmap?>) {
             log("BitMapObserver::onSuccess")
             pair.second?.let {
-                memoryCache.set(pair.first, pair.second)
+                memoryCache.put(pair.first, pair.second)
                 image.setImageBitmap(pair.second)
             }
         }

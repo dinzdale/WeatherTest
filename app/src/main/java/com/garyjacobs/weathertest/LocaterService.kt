@@ -8,13 +8,19 @@ import android.location.Location
 import android.os.*
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.location.LocationListener
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.LocationSource
 import model.Forecast
 import network.GetForecastData
-import retrofit.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
+
+//import retrofit.*
 
 /**
  * Created by garyjacobs on 11/24/17.
@@ -145,7 +151,7 @@ class LocaterService : Service() {
         val call = getForecastData.getForecastByCoords(addresses[0].latitude, addresses[0].longitude, res.getString(R.string.openweathermap_appid))
 
         val response = call.enqueue(object : Callback<Forecast> {
-            override fun onResponse(response: Response<Forecast>?, retrofit: Retrofit?) {
+            override fun onResponse(call: Call<Forecast>?, response: Response<Forecast>?) {
                 response?.let {
                     application.forecast = it.body()
                     bundle.putBoolean("STATUS", true)
@@ -153,8 +159,8 @@ class LocaterService : Service() {
                 }
             }
 
-            override fun onFailure(throwable: Throwable?) {
-                throwable?.let {
+            override fun onFailure(call: Call<Forecast>?, throwable: Throwable?) {
+                 throwable?.let {
                     bundle.putBoolean("STATUS", false)
                     bundle.putString("ERROR", it.message)
                     outboundmessenger.sendMessage(what, bundle)

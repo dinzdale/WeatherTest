@@ -12,10 +12,10 @@ import com.garyjacobs.weathertest.WeatherTestApplication
 import java.net.URL
 
 import model.Forecast
-import retrofit.*
-import retrofit.http.GET
-import retrofit.http.Path
-import retrofit.http.Query
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Query
+
 
 /**
  * Created by gjacobs on 10/31/15.
