@@ -4,14 +4,16 @@ import android.app.Application
 import  android.location.Address
 import com.squareup.otto.Bus
 import com.squareup.picasso.Picasso
+import model.CurrentWeather
 import model.Forecast
 
 /**
  * Created by gjacobs on 11/1/15.
  */
 class WeatherTestApplication : Application() {
+    var currentWeather: CurrentWeather? = null
     var forecast: Forecast? = null
-    var location: Address? = null
+    lateinit var location: Address
     lateinit var imageManager: ImageManager
     lateinit var bus: Bus
 

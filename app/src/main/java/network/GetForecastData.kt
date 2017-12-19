@@ -8,6 +8,7 @@ import android.os.RemoteException
 import android.widget.Toast
 import com.garyjacobs.weathertest.R
 import com.garyjacobs.weathertest.WeatherTestApplication
+import model.CurrentWeather
 
 import java.net.URL
 
@@ -34,6 +35,7 @@ interface GetForecastData {
     @GET("/data/2.5/forecast/daily/?mode=json")
     fun getForecastByCoords(@Query("lat") lat: Double, @Query("lon") lon: Double, @Query("appid") appid: String, @Query("cnt") cnt: Int = 16, @Query("units") units: String = "imperial"): Call<Forecast>
 
-
+    @GET("data/2.5/weather?mode=json")
+    fun getCurrrentWeatherByCoords(@Query("lat") lat: Double, @Query("lon") lon: Double, @Query("appid") appid: String, @Query("units") units: String = "imperial"): Call<CurrentWeather>
 
 }

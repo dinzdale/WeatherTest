@@ -32,7 +32,8 @@ class ImageManager(maxSize: Int) {
         val url = "${image.resources.getString(R.string.openweathermap_base_url)}/img/w/$icon"
         val bitmap: Bitmap? = memoryCache.get(url)
         if (bitmap != null) {
-            image.setImageBitmap(bitmap)
+            image.setImageBitmap(Bitmap.createScaledBitmap(bitmap,image.width,image.height,false)
+            )
         } else {
             getBitmapObservable(url, this::oldBitmapFetcher)
                     .subscribeOn(Schedulers.io())
@@ -70,7 +71,7 @@ class ImageManager(maxSize: Int) {
             log("BitMapObserver::onSuccess")
             pair.second?.let {
                 memoryCache.put(pair.first, pair.second)
-                image.setImageBitmap(pair.second)
+                image.setImageBitmap(Bitmap.createScaledBitmap(pair.second,image.width,image.height,false))
             }
         }
     }
