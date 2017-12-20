@@ -56,7 +56,7 @@ class WeatherMainActivity : WeatherActivity() {
         override fun onClick(v: View?) {
             val comboBox = v as ComboBox
             comboBox.getCurrentText()?.let {
-                if (it.isNotEmpty()) {
+                if (it.isNotEmpty() && it.isNotBlank()) {
                     val bundle = Bundle()
                     bundle.putString("LOCATION", it)
                     outboundMessenger.sendMessage(LocaterService.REQUESTLOCATION, bundle)
