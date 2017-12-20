@@ -10,5 +10,5 @@ data class Results(val void: Unit) {
             var lng = 0.toFloat()
         }
     }
-    lateinit var locations: Array<Locations>
+     var locations: Array<Locations> = arrayOf()
 }

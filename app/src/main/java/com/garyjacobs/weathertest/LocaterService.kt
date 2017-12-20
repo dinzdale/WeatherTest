@@ -6,6 +6,7 @@ import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.os.*
+import android.widget.Toast
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -14,12 +15,15 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.LocationSource
 import model.CurrentWeather
 import model.Forecast
+import model.Mapquest.GeocodeData
 import network.GetForecastData
+import network.GetGeocodeInfo
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.*
 
 
 //import retrofit.*
@@ -68,25 +72,40 @@ class LocaterService : Service() {
                             fusedLocationProviderClient
                                     .lastLocation
                                     .addOnSuccessListener { lastLocation ->
-                                        lastLocation?.let {
-                                            val addressList = Geocoder(this@LocaterService).getFromLocation(it.latitude, it.longitude, 1)
-                                            application.location = addressList[0]
-                                            bundle.putParcelableArray("LOCATION", addressList.toTypedArray())
-                                            FetchForecastServiceForcastData(REQUESTEDCURRENTLOCATION, bundle)
-                                        }
+                                        lastLocation.reverseGeocode()?.enqueue(object : retrofit2.Callback<GeocodeData> {
+                                            override fun onFailure(call: Call<GeocodeData>?, t: Throwable?) {
+                                            }
+
+                                            override fun onResponse(call: Call<GeocodeData>?, response: Response<GeocodeData>?) {
+                                                response?.body()?.let {
+                                                    val addresses = it.toAddresses()
+                                                    bundle.putParcelableArray("LOCATION", addresses)
+                                                    FetchForecastServiceForcastData(REQUESTEDCURRENTLOCATION, bundle)
+                                                }
+                                            }
+                                        })
                                     }
                         }
                         REQUESTLOCATION -> {
                             val requestedLocal = incomingMessage.data.getString("LOCATION")
                             requestedLocal?.let {
-                                val addressList = Geocoder(this@LocaterService).getFromLocationName(it, 5)
-                                bundle.putParcelableArray("LOCATION", addressList.toTypedArray())
-                                if (addressList.size == 1) {
-                                    application.location = addressList[0]
-                                    FetchForecastServiceForcastData(REQUESTEDLOCATION, bundle)
-                                } else {
-                                    outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
-                                }
+                                GeocodeLocation(it)?.enqueue(object : retrofit2.Callback<GeocodeData> {
+                                    override fun onFailure(call: Call<GeocodeData>?, t: Throwable?) {
+                                    }
+
+                                    override fun onResponse(call: Call<GeocodeData>?, response: Response<GeocodeData>?) {
+                                        response?.body()?.let {
+                                            val addresses = it.toAddresses()
+                                            bundle.putParcelableArray("LOCATION", addresses)
+                                            if (addresses.size == 1) {
+                                                application.location = addresses[0]
+                                                FetchForecastServiceForcastData(REQUESTEDLOCATION, bundle)
+                                            } else {
+                                                outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
+                                            }
+                                        }
+                                    }
+                                })
                             }
                         }
                         REQUESTCURRENTWEATHERCURRENTLOCATION -> {
@@ -122,8 +141,8 @@ class LocaterService : Service() {
                                                 outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
                                             }
                                         } catch (ex: Exception) {
-                                            bundle.putBoolean("STATUS",false)
-                                            bundle.putString("ERROR",ex.message)
+                                            bundle.putBoolean("STATUS", false)
+                                            bundle.putString("ERROR", ex.message)
                                             outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERWITHLOCATION)
                                         }
                                     }
@@ -252,5 +271,25 @@ class LocaterService : Service() {
         } catch (e: RemoteException) {
             e.printStackTrace()
         }
+    }
+
+    private fun GeocodeLocation(location: String): Call<GeocodeData>? {
+        val retrofit = Retrofit.Builder()
+                .baseUrl(application.resources.getString(R.string.mapquest_geocode_base_url))
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+        val getGeoCodeInfo = retrofit.create(GetGeocodeInfo::class.java)
+        return getGeoCodeInfo.getGeocodedAddress(location, application.resources.getString(R.string.mapquest_consumer_key))
+    }
+
+    private fun Location.coordsToString() = "${latitude},${longitude}"
+
+    private fun Location.reverseGeocode(): Call<GeocodeData>? {
+        val retrofit = Retrofit.Builder()
+                .baseUrl(application.resources.getString(R.string.mapquest_geocode_base_url))
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+        val getGeocodeInfo = retrofit.create(GetGeocodeInfo::class.java)
+        return getGeocodeInfo.getReverseGeocodedAddress(coordsToString(), application.resources.getString(R.string.mapquest_consumer_key))
     }
 }

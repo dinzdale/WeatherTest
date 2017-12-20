@@ -3,7 +3,7 @@ package model
 /**
  * Created by garyjacobs on 12/18/17.
  */
-data class CurrentWeather(val void: Any) {
+data class CurrentWeather(val void: Unit) {
     lateinit var coord: Coordinates
     lateinit var weather: Array<Weather>
     lateinit var base: String

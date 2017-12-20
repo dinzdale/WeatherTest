@@ -3,7 +3,7 @@ package model
 /**
  * Created by garyjacobs on 12/18/17.
  */
-class Sys(val void: Any) {
+class Sys(val void: Unit) {
     var type = 0.toInt()
     var id = 0.toInt()
     var message = 0.toFloat()

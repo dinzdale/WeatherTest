@@ -3,7 +3,7 @@ package model
 /**
  * Created by gjacobs on 10/31/15.
  */
-data class Weather(val void: Any) {
+data class Weather(val void: Unit) {
     var id: Int = 0
     lateinit var main: String
     lateinit var description: String

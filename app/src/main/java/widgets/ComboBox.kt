@@ -12,6 +12,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.TextView
+import model.formatAddress
 
 
 class ComboBox : AppCompatAutoCompleteTextView {
@@ -67,7 +68,7 @@ class ComboBox : AppCompatAutoCompleteTextView {
     }
 
     fun updateComboBoxSelections(addresses: Array<Address>) {
-        val newList = MutableList<String>(addresses.size, { index -> addresses[index].getAddressLine(0) })
+        val newList = MutableList<String>(addresses.size, { index -> addresses[index].formatAddress() })
         val theAdapter = adapter as ArrayAdapter<String>
         theAdapter.clear()
         theAdapter.addAll(newList)

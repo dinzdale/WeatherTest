@@ -11,5 +11,5 @@ class Info(val void: Unit) {
         lateinit var imageUrl : String
         lateinit var imageAltText : String
     }
-    lateinit var messages: Array<String>
+     var messages: Array<String> = arrayOf()
 }

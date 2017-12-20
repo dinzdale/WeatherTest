@@ -3,7 +3,7 @@ package model
 /**
  * Created by gjacobs on 10/31/15.
  */
-data class Forecast(val void: Any) {
+data class Forecast(val void: Unit) {
     lateinit var city: City
     lateinit var cod: String
     var message: Float = 0.toFloat()
