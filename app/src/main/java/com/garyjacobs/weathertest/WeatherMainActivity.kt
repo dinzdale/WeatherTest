@@ -48,7 +48,8 @@ class WeatherMainActivity : WeatherActivity() {
 
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             outboundMessenger = Messenger(service)
-            outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
+            //outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
+            outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION)
             locaterServiceBound = true
         }
     }
@@ -59,9 +60,13 @@ class WeatherMainActivity : WeatherActivity() {
                 if (it.isNotEmpty() && it.isNotBlank()) {
                     val bundle = Bundle()
                     bundle.putString("LOCATION", it)
-                    outboundMessenger.sendMessage(LocaterService.REQUESTLOCATION, bundle)
+                    //outboundMessenger.sendMessage(LocaterService.REQUESTLOCATION, bundle)
+                    outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERWITHLOCATION, bundle)
+
                 } else {
-                    outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
+                    //outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
+                    outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERWITHLOCATION)
+
                 }
             }
         }
@@ -89,7 +94,8 @@ class WeatherMainActivity : WeatherActivity() {
                 when (it.what) {
                     LocaterService.CONNECTING -> {
                         supportActionBar?.title = "Connecting..."
-                        outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
+                        //outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
+                        outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION)
                     }
                     LocaterService.REQUESTEDCURRENTLOCATION -> {
                         progress_bar.visibility = View.INVISIBLE
@@ -97,7 +103,7 @@ class WeatherMainActivity : WeatherActivity() {
                         val addresses = message.data.get("LOCATION") as Array<Address>
                         supportActionBar?.title = addresses[0].formatAddress()
                         if (message.data.get("STATUS") as Boolean) {
-                            LoadFirstPanelFragment(WeatherListFragment(), addresses)
+                            LoadFirstPanelFragment(WeatherListFragment())
                         } else {
                             Toast.makeText(this@WeatherMainActivity, message.data.get("ERROR") as String, Toast.LENGTH_LONG)
                         }
@@ -107,7 +113,7 @@ class WeatherMainActivity : WeatherActivity() {
                         if (addresses.size == 1) {
                             supportActionBar?.title = addresses[0].formatAddress()
                             if (message.data.get("STATUS") as Boolean) {
-                                LoadFirstPanelFragment(WeatherListFragment(), addresses)
+                                LoadFirstPanelFragment(WeatherListFragment())
                             } else {
                                 Toast.makeText(this@WeatherMainActivity, message.data.get("ERROR") as String, Toast.LENGTH_LONG)
                             }
@@ -119,11 +125,24 @@ class WeatherMainActivity : WeatherActivity() {
                         progress_bar.visibility = View.INVISIBLE
                         location_cb.visibility = View.VISIBLE
                         val addresses = message.data.get("LOCATION") as Array<Address>
-                        supportActionBar?.title = addresses[0].getAddressLine(0)
+                        supportActionBar?.title = addresses[0].formatAddress()
                         if (message.data.get("STATUS") as Boolean) {
-                            LoadFirstPanelFragment(CurrentWeatherFragment(), addresses)
+                            LoadFirstPanelFragment(CurrentWeatherFragment())
                         } else {
                             Toast.makeText(this@WeatherMainActivity, message.data.get("ERROR") as String, Toast.LENGTH_LONG)
+                        }
+                    }
+                    LocaterService.REQUESTEDCURRENTWEATHERWITHLOCATION -> {
+                        val addresses = message.data.get("LOCATION") as Array<Address>
+                        if (addresses.size == 1) {
+                            supportActionBar?.title = addresses[0].formatAddress()
+                            if (message.data.get("STATUS") as Boolean) {
+                                LoadFirstPanelFragment(CurrentWeatherFragment())
+                            } else {
+                                Toast.makeText(this@WeatherMainActivity, message.data.get("ERROR") as String, Toast.LENGTH_LONG)
+                            }
+                        } else {
+                            location_cb.updateComboBoxSelections(addresses)
                         }
                     }
                     else -> {
@@ -134,7 +153,7 @@ class WeatherMainActivity : WeatherActivity() {
         }
     }
 
-    private fun LoadFirstPanelFragment(fragment: Fragment, addresses: Array<Address>) {
+    private fun LoadFirstPanelFragment(fragment: Fragment) {
         fragmentManager
                 .beginTransaction()
                 .replace(R.id.weather_list_container, fragment)
