@@ -5,5 +5,5 @@ package model
  */
 data class Wind(val void: Unit) {
     var speed = 0.toFloat()
-    var deg = 160.toInt()
+    var deg = 160.toFloat()
 }

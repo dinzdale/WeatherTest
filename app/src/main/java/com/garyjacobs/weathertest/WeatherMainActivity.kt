@@ -48,8 +48,8 @@ class WeatherMainActivity : WeatherActivity() {
 
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             outboundMessenger = Messenger(service)
-            //outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
-            outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION)
+            outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
+            //outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION)
             locaterServiceBound = true
         }
     }
@@ -60,12 +60,12 @@ class WeatherMainActivity : WeatherActivity() {
                 if (it.isNotEmpty() && it.isNotBlank()) {
                     val bundle = Bundle()
                     bundle.putString("LOCATION", it)
-                    //outboundMessenger.sendMessage(LocaterService.REQUESTLOCATION, bundle)
-                    outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERWITHLOCATION, bundle)
+                    outboundMessenger.sendMessage(LocaterService.REQUESTLOCATION, bundle)
+                    //outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERWITHLOCATION, bundle)
 
                 } else {
-                    //outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
-                    outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERWITHLOCATION)
+                    outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
+                    //outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION)
 
                 }
             }
@@ -94,8 +94,8 @@ class WeatherMainActivity : WeatherActivity() {
                 when (it.what) {
                     LocaterService.CONNECTING -> {
                         supportActionBar?.title = "Connecting..."
-                        //outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
-                        outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION)
+                        outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTLOCATION)
+                        //outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION)
                     }
                     LocaterService.REQUESTEDCURRENTLOCATION -> {
                         progress_bar.visibility = View.INVISIBLE

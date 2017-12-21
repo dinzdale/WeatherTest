@@ -10,10 +10,18 @@ import android.widget.Toast
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.LocationSource
-import com.google.android.gms.tasks.OnSuccessListener
+import io.reactivex.Observable
+import io.reactivex.Observer
+import io.reactivex.Single
+import io.reactivex.SingleObserver
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.functions.Function
+import io.reactivex.schedulers.Schedulers
 import model.CurrentWeather
 import model.Forecast
 import model.Mapquest.GeocodeData
@@ -23,8 +31,10 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.*
+import retrofit2.http.GET
+import java.util.function.Consumer
 
 
 //import retrofit.*
@@ -66,107 +76,80 @@ class LocaterService : Service() {
         override fun handleMessage(incomingMessage: Message?) {
             incomingMessage?.let {
                 outboundmessenger = it.replyTo
-                val bundle = Bundle()
                 if (apiConnected) {
                     when (incomingMessage.what) {
-                        REQUESTCURRENTLOCATION -> {
-                            fusedLocationProviderClient
-                                    .lastLocation
-                                    .addOnSuccessListener { lastLocation ->
-                                        lastLocation.getReverseGeocodeLocation()?.enqueue(object : retrofit2.Callback<GeocodeData> {
-                                            override fun onFailure(call: Call<GeocodeData>?, t: Throwable?) {
-                                            }
-
-                                            override fun onResponse(call: Call<GeocodeData>?, response: Response<GeocodeData>?) {
-                                                response?.body()?.let {
-                                                    val addresses = it.toAddresses()
-                                                    bundle.putParcelableArray("LOCATION", addresses)
-                                                    FetchForecastServiceForcastData(REQUESTEDCURRENTLOCATION, bundle)
-                                                }
-                                            }
-                                        })
-                                    }
+                        REQUESTCURRENTLOCATION -> fusedLocationProviderClient.lastLocation.addOnSuccessListener {
+                            it.getReverseGeocodeLocation()
+                                    ?.subscribe { addresses, throwable ->
+                                        addresses?.let {
+                                            getForecast(addresses[0].latitude, addresses[0].longitude)
+                                                    ?.subscribe { forecast, throwable ->
+                                                        forecast?.let {
+                                                            val bundle = Bundle()
+                                                            bundle.putParcelableArray("LOCATION", addresses)
+                                                            outboundmessenger.sendMessage(REQUESTEDCURRENTLOCATION, bundle)
+                                                        } ?: handleError(REQUESTEDCURRENTLOCATION, throwable.message)
+                                                    }
+                                        } ?: handleError(REQUESTEDCURRENTLOCATION, throwable.message)
+                                    } ?: handleError(REQUESTEDCURRENTLOCATION, "Error getting current location")
                         }
-                        REQUESTLOCATION -> {
-                            val requestedLocal = incomingMessage.data.getString("LOCATION")
-                            requestedLocal?.let {
-                                getGeocodeLocation(it)?.enqueue(object : retrofit2.Callback<GeocodeData> {
-                                    override fun onFailure(call: Call<GeocodeData>?, t: Throwable?) {
-                                    }
-
-                                    override fun onResponse(call: Call<GeocodeData>?, response: Response<GeocodeData>?) {
-                                        response?.body()?.let {
-                                            val addresses = it.toAddresses()
-                                            bundle.putParcelableArray("LOCATION", addresses)
+                        REQUESTLOCATION -> incomingMessage.data.getString("LOCATION")?.let {
+                            getGeocodeLocation(it)
+                                    ?.subscribe { addresses, throwable ->
+                                        addresses?.let {
+                                            val bundle = Bundle()
+                                            bundle.putParcelableArray("LOCATION", it)
                                             if (addresses.size == 1) {
-                                                application.location = addresses[0]
-                                                FetchForecastServiceForcastData(REQUESTEDLOCATION, bundle)
+                                                getForecast(it[0].latitude, it[0].longitude)
+                                                        .subscribe { forecast, throwable ->
+                                                            forecast?.let {
+                                                                outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
+                                                            } ?: handleError(REQUESTEDLOCATION, throwable.message)
+                                                        }
                                             } else {
                                                 outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
                                             }
-                                        }
+                                        } ?: handleError(REQUESTEDLOCATION, throwable.message)
                                     }
-                                })
-                            }
                         }
+
                         REQUESTCURRENTWEATHERCURRENTLOCATION -> fusedLocationProviderClient
                                 .lastLocation
                                 .addOnSuccessListener {
-                                    it.getReverseGeocodeLocation()!!.enqueue(object : retrofit2.Callback<GeocodeData> {
-                                        override fun onResponse(call: Call<GeocodeData>?, response: Response<GeocodeData>?) {
-                                            response?.body()?.let {
-                                                if (response.isSuccessful) {
-                                                    val addresses = it.toAddresses()
-                                                    application.location = addresses[0]
-                                                    bundle.putParcelableArray("LOCATION", addresses)
-                                                    getCurrentWeather(addresses[0].latitude, addresses[0].latitude)?.execute()?.let {
-                                                        if (it.isSuccessful) {
-                                                            application.currentWeather = it.body()
-                                                            outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION, bundle)
-                                                        } else handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, "Could not get current weather ERROR:${it.code()}")
-                                                    }
-                                                } else handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, "Error trying to reverse geocode ERROR:${response.code()}")
-                                            } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION)
-                                        }
-                                        override fun onFailure(call: Call<GeocodeData>?, t: Throwable?) {
-                                            handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, t?.message)
-                                        }
-                                    })
+                                    it.getReverseGeocodeLocation()
+                                            ?.subscribe { addresses, throwable ->
+                                                addresses?.let {
+                                                    getCurrentWeather(addresses[0].latitude.toFloat(), addresses[0].longitude.toFloat())
+                                                            .subscribe { currentWeather, throwable ->
+                                                                currentWeather?.let {
+                                                                    val bundle = Bundle()
+                                                                    bundle.putParcelableArray("LOCATION", addresses)
+                                                                    outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION, bundle)
+                                                                } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
+                                                            }
+                                                } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
+                                            }
                                 }
 
-                        REQUESTCURRENTWEATHERWITHLOCATION -> {
-                            incomingMessage.data.getString("LOCATION")?.let {
-                                getGeocodeLocation(it)!!.enqueue(object : retrofit2.Callback<GeocodeData> {
-                                    override fun onResponse(call: Call<GeocodeData>?, response: Response<GeocodeData>?) {
-                                        response?.body()?.let {
-                                            if (response.isSuccessful) {
-                                                val addresses = it.toAddresses()
-                                                bundle.putParcelableArray("LOCATION", addresses)
-                                                if (addresses.size == 1) {
-                                                    application.location = addresses[0]
-                                                    getCurrentWeather(addresses[0].latitude, addresses[0].longitude).execute()?.let {
-                                                        if (it.isSuccessful) {
-                                                            application.currentWeather = it.body()
+                        REQUESTCURRENTWEATHERWITHLOCATION -> incomingMessage.data.getString("LOCATION")?.let {
+                            getGeocodeLocation(it)
+                                    ?.subscribe { addresses, throwable ->
+                                        addresses?.let {
+                                            val bundle = Bundle()
+                                            bundle.putParcelableArray("LOCATION", addresses)
+                                            if (addresses.size == 1) {
+                                                getCurrentWeather(addresses[0].latitude.toFloat(), addresses[0].longitude.toFloat())
+                                                        .subscribe { currentWeather, throwable ->
+                                                            application.location = addresses[0]
+                                                            application.currentWeather = currentWeather
                                                             outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERWITHLOCATION, bundle)
                                                         }
-                                                    }
-                                                } else {
-                                                    outboundmessenger.sendMessage(REQUESTCURRENTWEATHERWITHLOCATION, bundle)
-                                                }
-                                            }
-                                        } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, "Error")
 
-
-                                    }
-
-                                    override fun onFailure(call: Call<GeocodeData>?, t: Throwable?) {
-                                        handleError(REQUESTCURRENTWEATHERCURRENTLOCATION, "Invalid Location Entered")
-                                    }
-                                })
-                            }
-                        }
+                                            } else outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERWITHLOCATION, bundle)
+                                        } ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, throwable.message)
+                                    } ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, "Could not get location")
+                        } ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, "Invalid address entered")
                         else -> {
-
                         }
                     }
                 } else {
@@ -229,44 +212,35 @@ class LocaterService : Service() {
     }
 
 
-    private fun FetchForecastServiceForcastData(what: Int, bundle: Bundle) {
-        val addresses = bundle.get("LOCATION") as Array<Address>
+    private fun getForecast(latitude: Double, longitude: Double): Single<Forecast> {
         val res = application.resources
-        val builder = Retrofit.Builder()
-        builder.baseUrl(res.getString(R.string.openweathermap_base_url))
-        builder.addConverterFactory(GsonConverterFactory.create())
-        val retrofit = builder.build()
-        val getForecastData = retrofit.create(GetForecastData::class.java)
-        val call = getForecastData.getForecastByCoords(addresses[0].latitude, addresses[0].longitude, res.getString(R.string.openweathermap_appid))
-
-        val response = call.enqueue(object : Callback<Forecast> {
-            override fun onResponse(call: Call<Forecast>?, response: Response<Forecast>?) {
-                response?.let {
-                    application.forecast = it.body()
-                    bundle.putBoolean("STATUS", true)
-                    outboundmessenger.sendMessage(what, bundle)
-                }
-            }
-
-            override fun onFailure(call: Call<Forecast>?, throwable: Throwable?) {
-                throwable?.let {
-                    bundle.putBoolean("STATUS", false)
-                    bundle.putString("ERROR", it.message)
-                    outboundmessenger.sendMessage(what, bundle)
-                }
-            }
-        })
-
-    }
-
-    private fun getCurrentWeather(latitude: Double, longitude: Double): Call<CurrentWeather> {
-        val res = application.resources
-        val retrofit = Retrofit.Builder()
+        return Retrofit.Builder()
                 .baseUrl(res.getString(R.string.openweathermap_base_url))
                 .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
-        val getForecastData = retrofit.create(GetForecastData::class.java)
-        return getForecastData.getCurrrentWeatherByCoords(latitude, longitude, res.getString(R.string.openweathermap_appid))
+                .create(GetForecastData::class.java)
+                .getForecastByCoords(latitude, longitude, res.getString(R.string.openweathermap_appid))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext { application.forecast = it }
+                .singleOrError()
+    }
+
+    private fun getCurrentWeather(latitude: Float, longitude: Float): Single<CurrentWeather> {
+        val res = application.resources
+        return Retrofit.Builder()
+                .baseUrl(res.getString(R.string.openweathermap_base_url))
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build()
+                .create(GetForecastData::class.java)
+                .getCurrrentWeatherByCoords(latitude, longitude, res.getString(R.string.openweathermap_appid))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext { application.currentWeather = it }
+                .singleOrError()
+
     }
 
 
@@ -285,32 +259,37 @@ class LocaterService : Service() {
         }
     }
 
-    private fun getGeocodeLocation(location: String): Call<GeocodeData>? {
-        val retrofit = Retrofit.Builder()
+    private fun getGeocodeLocation(location: String): Single<Array<Address>>? {
+        return Retrofit.Builder()
                 .baseUrl(application.resources.getString(R.string.mapquest_geocode_base_url))
                 .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
-        val getGeoCodeInfo = retrofit.create(GetGeocodeInfo::class.java)
-        return getGeoCodeInfo.getGeocodedAddress(location, application.resources.getString(R.string.mapquest_consumer_key))
+                .create(GetGeocodeInfo::class.java)
+                .getGeocodedAddress(location, application.resources.getString(R.string.mapquest_consumer_key))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .map { it.toAddresses() }
+                .doOnNext { if (it.size == 1) application.location = it[0] }
+                .singleOrError()
+
     }
 
     private fun Location.coordsToString() = "${latitude},${longitude}"
 
-    private fun Location.getReverseGeocodeLocation(): Call<GeocodeData>? {
-        val retrofit = Retrofit.Builder()
+    private fun Location.getReverseGeocodeLocation(): Single<Array<Address>>? {
+        return Retrofit.Builder()
                 .baseUrl(application.resources.getString(R.string.mapquest_geocode_base_url))
                 .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
-        val getGeocodeInfo = retrofit.create(GetGeocodeInfo::class.java)
-        return getGeocodeInfo.getReverseGeocodedAddress(coordsToString(), application.resources.getString(R.string.mapquest_consumer_key))
-    }
-
-    private fun <T> runInBackground(call: Call<T>, toucheTurtle: () -> Unit) {
-        Thread(object : Runnable {
-            override fun run() {
-                call.execute()?.let { toucheTurtle }
-            }
-        }).start()
+                .create(GetGeocodeInfo::class.java)
+                .getReverseGeocodedAddress(coordsToString(), application.resources.getString(R.string.mapquest_consumer_key))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .map { it.toAddresses() }
+                .doOnNext { application.location = it[0] }
+                .singleOrError()
     }
 
 }

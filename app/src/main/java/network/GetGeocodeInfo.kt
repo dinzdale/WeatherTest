@@ -1,6 +1,7 @@
 package network
 
 import android.location.Address
+import io.reactivex.Observable
 import model.CurrentWeather
 import model.Mapquest.GeocodeData
 import retrofit2.Call
@@ -12,8 +13,8 @@ import retrofit2.http.Query
  */
 interface GetGeocodeInfo {
     @GET("geocoding/v1/address?outputFormat=json")
-    fun getGeocodedAddress(@Query("location") location: String, @Query("key") key : String, @Query("maxResults") maxResults : Int = 5) : Call<GeocodeData>
+    fun getGeocodedAddress(@Query("location") location: String, @Query("key") key : String, @Query("maxResults") maxResults : Int = 5) : Observable<GeocodeData>
 
     @GET("geocoding/v1/reverse?outputFormat=json")
-    fun getReverseGeocodedAddress(@Query("location") location: String, @Query("key") key: String): Call<GeocodeData>
+    fun getReverseGeocodedAddress(@Query("location") location: String, @Query("key") key: String): Observable<GeocodeData>
 }
