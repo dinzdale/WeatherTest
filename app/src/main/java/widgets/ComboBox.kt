@@ -56,7 +56,7 @@ class ComboBox : AppCompatAutoCompleteTextView {
                 retValue = true
                 dismissKeyboard()
                 dismissDropDown()
-                listener?.onClick(v)
+                callOnClick()
             }
             retValue
         }
@@ -65,6 +65,15 @@ class ComboBox : AppCompatAutoCompleteTextView {
         setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, arrayOf()))
 
 
+    }
+
+    override fun callOnClick(): Boolean {
+        var status = false
+        listener?.let {
+            status = true
+            it.onClick(this)
+        }
+        return status
     }
 
     fun updateComboBoxSelections(addresses: Array<Address>) {

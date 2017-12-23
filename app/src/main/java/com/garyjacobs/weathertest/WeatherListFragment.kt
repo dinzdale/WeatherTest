@@ -1,6 +1,7 @@
 package com.garyjacobs.weathertest
 
 
+import Events.ForecastListSelectedEvent
 import android.os.Bundle
 import android.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -12,7 +13,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import Events.ForecastListSelected
 import model.Forecast
 import kotlinx.android.synthetic.main.weather_list.*
 
@@ -32,7 +32,7 @@ class WeatherListFragment : Fragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         myActivity = activity as WeatherActivity
-        weather_list!!.layoutManager = LinearLayoutManager(activity)
+        weather_list!!.layoutManager = LinearLayoutManager(activity,LinearLayoutManager.HORIZONTAL,false)
         val myRecyclerViewAdapter = MyRecyclerViewAdapter(myActivity.weatherApplication.forecast!!, View.OnClickListener { v -> onItemClick(weather_list!!.getChildAdapterPosition(v)) })
         weather_list!!.adapter = myRecyclerViewAdapter
     }
@@ -57,7 +57,7 @@ class WeatherListFragment : Fragment() {
 
     }
 
-    private fun onItemClick(position: Int) = myActivity!!.weatherApplication.bus.post(ForecastListSelected(position))
+    private fun onItemClick(position: Int) = myActivity!!.weatherApplication.bus.post(ForecastListSelectedEvent(position))
 
 
     private inner class MyRecyclerViewAdapter(internal var forecast: Forecast, internal var onClickListener: View.OnClickListener) : RecyclerView.Adapter<MyViewHolder>() {

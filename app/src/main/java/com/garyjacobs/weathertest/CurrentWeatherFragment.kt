@@ -1,11 +1,16 @@
 package com.garyjacobs.weathertest
 
+import Events.CurrentWeatherSelectedEvent
 import android.app.Fragment
-import android.content.res.Resources
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.current_weather.*
 
 /**
@@ -30,7 +35,65 @@ class CurrentWeatherFragment : Fragment() {
             low_temp.text = myActivity.resources.getString(R.string.current_low, it.main.temp_min.toInt())
             high_temp.text = myActivity.resources.getString(R.string.current_high, it.main.temp_max.toInt())
             wind.text = myActivity.resources.getString(R.string.current_wind, it.wind.speed.toInt())
+
+            // setup up map in background
+            current_weather_map.onCreate(savedInstanceState)
+            current_weather_map.getMapAsync(object : OnMapReadyCallback {
+
+                override fun onMapReady(googleMapApi: GoogleMap?) {
+                    googleMapApi?.let {
+                        val latlon = LatLng(myActivity.weatherApplication.location.latitude, myActivity.weatherApplication.location.longitude)
+                        it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 10.toFloat()))
+                        it.addMarker(MarkerOptions()
+                                .position(latlon))
+                    }
+                }
+            })
+           cw_constraint_layout.setOnLongClickListener {
+               myActivity.weatherApplication.bus.post(CurrentWeatherSelectedEvent())
+               true
+           }
         }
 
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        current_weather_map.onSaveInstanceState(outState)
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+    }
+    override fun onStart() {
+        super.onStart()
+        current_weather_map.onStart()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        current_weather_map.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        current_weather_map.onPause()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        current_weather_map.onStop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        current_weather_map?.let { current_weather_map.onDestroy() }
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        current_weather_map?.let {
+            current_weather_map.onLowMemory()
+        }
     }
 }

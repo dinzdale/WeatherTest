@@ -2,6 +2,9 @@ package com.garyjacobs.weathertest
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
+import android.provider.Settings
+import android.util.DisplayMetrics
 import android.view.View
 
 import android.widget.ImageView
@@ -23,29 +26,41 @@ import io.reactivex.SingleObserver
  */
 class ImageManager(maxSize: Int) {
 
-    private val memoryCache = LruCache<String,Bitmap>(maxSize)
+    private val memoryCache = LruCache<String, Bitmap>(maxSize)
 
     private val TAG: String = "ImageManager"
+
+    private var bitmapOptions: BitmapFactory.Options? = null
+
 
     fun setImage(icon: String, image: ImageView) {
 
         val url = "${image.resources.getString(R.string.openweathermap_base_url)}/img/w/$icon"
-        val bitmap: Bitmap? = memoryCache.get(url)
+        val key = "${url}-${image.width}x${image.height}"
+        val bitmap: Bitmap? = memoryCache.get(key)
         if (bitmap != null) {
             image.setImageBitmap(bitmap)
         } else {
-            getBitmapObservable(url, this::oldBitmapFetcher)
+            if (bitmapOptions == null) {
+                val options = BitmapFactory.Options()
+                val metrics = image.resources.displayMetrics
+                options.inScreenDensity = metrics.densityDpi
+                options.inTargetDensity = metrics.densityDpi
+                options.inDensity = DisplayMetrics.DENSITY_DEFAULT
+            }
+            getBitmapObservable(url, key, this::oldBitmapFetcher)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
+                    //.map { Pair<String, Bitmap>(it.first, Bitmap.createScaledBitmap(it.second, image.width, image.height, false)) }
                     .subscribe(BitMapObserver(image))
         }
     }
 
-    fun getBitmapObservable(url: String, bitmapFetcher: (String) -> Bitmap): Single<Pair<String, Bitmap>> {
+    fun getBitmapObservable(url: String, key: String, bitmapFetcher: (String) -> Bitmap): Single<Pair<String, Bitmap>> {
         return Single.create { subscriber ->
             try {
                 log("getBitmapObservable")
-                subscriber.onSuccess(Pair(url, bitmapFetcher(url)))
+                subscriber.onSuccess(Pair(key, bitmapFetcher(url)))
             } catch (ex: Exception) {
                 log("getBitmapObservable::error ${ex.message}")
                 subscriber.onError(ex)
@@ -69,17 +84,19 @@ class ImageManager(maxSize: Int) {
         override fun onSuccess(pair: Pair<String, Bitmap?>) {
             log("BitMapObserver::onSuccess")
             pair.second?.let {
+                log("BitMapObserver::onSuccess New dimensions: ${pair!!.second!!.width} x ${pair!!.second!!.height}")
                 memoryCache.put(pair.first, pair.second)
-                image.setImageBitmap(pair.second)
+                image.setImageDrawable(BitmapDrawable(image.context.resources,pair.second))
             }
         }
+
     }
 
 
     @Throws(Exception::class)
     fun oldBitmapFetcher(url: String): Bitmap {
         val httpURLConnection = URL(url).openConnection() as HttpURLConnection
-        return BitmapFactory.decodeStream(httpURLConnection.inputStream)
+        return BitmapFactory.decodeStream(httpURLConnection.inputStream, null, bitmapOptions)
     }
 
 }
