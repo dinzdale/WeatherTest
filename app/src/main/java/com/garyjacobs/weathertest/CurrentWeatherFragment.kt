@@ -3,6 +3,8 @@ package com.garyjacobs.weathertest
 import Events.CurrentWeatherSelectedEvent
 import android.app.Fragment
 import android.os.Bundle
+import android.support.annotation.FloatRange
+import android.util.Range
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +19,25 @@ import kotlinx.android.synthetic.main.current_weather.*
  * Created by garyjacobs on 12/18/17.
  */
 class CurrentWeatherFragment : Fragment() {
+    val windirectionMap = hashMapOf<IntRange, String>(348..360 to "N",
+            0..11 to "N",
+            12..33 to "NNE",
+            34..56 to "NE",
+            57..78 to "E",
+            79..101 to "ESE",
+            102..123 to "SE",
+            124..146 to "SSE",
+            147..168 to "S",
+            169..191 to "SSW",
+            192..213 to "SW",
+            214..236 to "WSW",
+            237..258 to "W",
+            259..281 to "WNW",
+            282..303 to "NW",
+            304..326 to "NW",
+            327..348 to "NNW",
+            349..360 to "N")
+
     lateinit var myActivity: WeatherActivity
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -34,7 +55,11 @@ class CurrentWeatherFragment : Fragment() {
             current_temp.text = it.main.temp.toInt().toString()
             low_temp.text = myActivity.resources.getString(R.string.current_low, it.main.temp_min.toInt())
             high_temp.text = myActivity.resources.getString(R.string.current_high, it.main.temp_max.toInt())
-            wind.text = myActivity.resources.getString(R.string.current_wind, it.wind.speed.toInt())
+            val windDirection = it.wind.deg
+            val keyMatchList = windirectionMap.keys.filter {
+                it.contains(windDirection)
+            }
+            wind.text = myActivity.resources.getString(R.string.current_wind, it.wind.speed.toInt(), windirectionMap.get(keyMatchList[0]))
 
             // setup up map in background
             current_weather_map.onCreate(savedInstanceState)
@@ -49,10 +74,10 @@ class CurrentWeatherFragment : Fragment() {
                     }
                 }
             })
-           cw_constraint_layout.setOnLongClickListener {
-               myActivity.weatherApplication.bus.post(CurrentWeatherSelectedEvent())
-               true
-           }
+            cw_constraint_layout.setOnLongClickListener {
+                myActivity.weatherApplication.bus.post(CurrentWeatherSelectedEvent())
+                true
+            }
         }
 
     }
@@ -65,6 +90,7 @@ class CurrentWeatherFragment : Fragment() {
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
     }
+
     override fun onStart() {
         super.onStart()
         current_weather_map.onStart()

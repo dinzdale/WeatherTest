@@ -13,7 +13,8 @@
     <string name="temprature_string">Min: %1$2.0f Max: %2$2.0f Day: %3$2.0f Night: %4$2.0f Eve: %5$2.0f Morn: %6$2.0f"</string>
     <string name="dayofweek_month_dayofmonth">"EEE MMM d,  yyyy"</string>
 
-    <string name="current_low">Min: %1$d</string>
-    <string name="current_high">Max: %1$d</string>
-    <string name="current_wind">Wind: %1$d NW</string>
+    <string name="current_low">Low: %1$d</string>
+    <string name="current_high">High: %1$d</string>
+    <string name="current_wind">Wind: %1$d %2$s</string>
+    <string name="city">City</string>
 </resources>
