@@ -56,10 +56,11 @@ class CurrentWeatherFragment : Fragment() {
             low_temp.text = myActivity.resources.getString(R.string.current_low, it.main.temp_min.toInt())
             high_temp.text = myActivity.resources.getString(R.string.current_high, it.main.temp_max.toInt())
             val windDirection = it.wind.deg
-            val keyMatchList = windirectionMap.keys.filter {
+            val matchedKey = windirectionMap.keys.filter {
                 it.contains(windDirection)
-            }
-            wind.text = myActivity.resources.getString(R.string.current_wind, it.wind.speed.toInt(), windirectionMap.get(keyMatchList[0]))
+            } [0]
+
+            wind.text = myActivity.resources.getString(R.string.current_wind, it.wind.speed.toInt(), windirectionMap.get(matchedKey))
 
             // setup up map in background
             current_weather_map.onCreate(savedInstanceState)
