@@ -61,7 +61,7 @@ class LocaterService : Service() {
     private lateinit var locationRequest: LocationRequest
     private lateinit var outboundmessenger: Messenger
     private var isBound = false
-    private var apiConnected = false
+    private var apiConnected = true
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     override fun onCreate() {
@@ -173,18 +173,18 @@ class LocaterService : Service() {
 
     private fun initLocationServices() {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-        googleAPIClient = GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(connectionCallBackListener)
-                .addOnConnectionFailedListener(connectionFailedListener)
-                .build()
-
-        locationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval((10 * 1000).toLong())        // 10 seconds, in milliseconds
-                .setFastestInterval((1 * 1000).toLong()) // 1 second, in milliseconds
-
-        googleAPIClient.connect()
+//        googleAPIClient = GoogleApiClient.Builder(this)
+//                .addApi(LocationServices.API)
+//                .addConnectionCallbacks(connectionCallBackListener)
+//                .addOnConnectionFailedListener(connectionFailedListener)
+//                .build()
+//
+//        locationRequest = LocationRequest.create()
+//                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+//                .setInterval((10 * 1000).toLong())        // 10 seconds, in milliseconds
+//                .setFastestInterval((1 * 1000).toLong()) // 1 second, in milliseconds
+//
+//        googleAPIClient.connect()
 
     }
 
