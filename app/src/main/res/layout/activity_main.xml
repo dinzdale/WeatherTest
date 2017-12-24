@@ -23,6 +23,7 @@
             android:id="@+id/location_cb"
             android:layout_width="match_parent"
             android:layout_height="50dp"
+            android:hint="@string/location_hint"
             android:background="@android:color/holo_red_light"
             android:completionThreshold="1"
             android:singleLine="true"

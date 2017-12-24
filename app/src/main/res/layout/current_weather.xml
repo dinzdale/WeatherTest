@@ -2,15 +2,16 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/extended_forecast"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#80007777">
 
     <android.support.v7.widget.CardView
         android:id="@+id/cw_cardview"
-        android:layout_width="275dp"
+        android:layout_width="260dp"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
+        android:layout_margin="10dp"
         android:longClickable="true"
         tools:cardCornerRadius="30dp"
         tools:cardElevation="25dp"
@@ -133,6 +134,22 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="@+id/low_temp"
                 app:layout_constraintTop_toBottomOf="@+id/low_temp" />
+
+            <TextView
+                android:id="@+id/extended_forcast"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginEnd="8dp"
+                android:fontFamily="sans-serif-condensed"
+                android:singleLine="true"
+                android:text="@string/extend_forecast"
+                android:textAppearance="@style/TextAppearance.AppCompat"
+                android:textColor="@android:color/holo_blue_dark"
+                android:textSize="12sp"
+                android:textStyle="bold|italic"
+                app:layout_constraintBottom_toBottomOf="@+id/current_temp"
+                app:layout_constraintEnd_toEndOf="parent" />
         </android.support.constraint.ConstraintLayout>
     </android.support.v7.widget.CardView>
 

@@ -17,4 +17,6 @@
     <string name="current_high">High: %1$d</string>
     <string name="current_wind">Wind: %1$d %2$s</string>
     <string name="city">City</string>
+    <string name="extend_forecast">extended forecast ></string>
+    <string name="location_hint">enter location, clear for current location</string>
 </resources>

@@ -1,6 +1,8 @@
 package com.garyjacobs.weathertest
 
 import Events.CurrentWeatherSelectedEvent
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.app.Fragment
 import android.os.Bundle
 import android.support.annotation.FloatRange
@@ -8,6 +10,7 @@ import android.util.Range
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewPropertyAnimator
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -39,6 +42,7 @@ class CurrentWeatherFragment : Fragment() {
             349..360 to "N")
 
     lateinit var myActivity: WeatherActivity
+    lateinit var extendForecastAnimation: ObjectAnimator
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
         super.onCreateView(inflater, container, savedInstanceState)
@@ -58,7 +62,7 @@ class CurrentWeatherFragment : Fragment() {
             val windDirection = it.wind.deg
             val matchedKey = windirectionMap.keys.filter {
                 it.contains(windDirection)
-            } [0]
+            }[0]
 
             wind.text = myActivity.resources.getString(R.string.current_wind, it.wind.speed.toInt(), windirectionMap.get(matchedKey))
 
@@ -80,7 +84,7 @@ class CurrentWeatherFragment : Fragment() {
                 true
             }
         }
-
+        extendForecastAnimation = doAlphaAnimation(extended_forcast)
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
@@ -94,22 +98,26 @@ class CurrentWeatherFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        current_weather_map.onStart()
+        current_weather_map?.onStart()
     }
 
     override fun onResume() {
         super.onResume()
-        current_weather_map.onResume()
+        current_weather_map?.onResume()
+        extendForecastAnimation.start()
+
     }
 
     override fun onPause() {
         super.onPause()
-        current_weather_map.onPause()
+        current_weather_map?.onPause()
+        extendForecastAnimation.cancel()
     }
 
     override fun onStop() {
         super.onStop()
-        current_weather_map.onStop()
+        current_weather_map?.onStop()
+        extendForecastAnimation.cancel()
     }
 
     override fun onDestroy() {
@@ -122,5 +130,14 @@ class CurrentWeatherFragment : Fragment() {
         current_weather_map?.let {
             current_weather_map.onLowMemory()
         }
+    }
+
+    fun doAlphaAnimation(view: View): ObjectAnimator {
+        val animator = ObjectAnimator.ofFloat(view, "alpha", 0.toFloat(), 1.toFloat())
+        animator.repeatCount = ValueAnimator.INFINITE
+        animator.repeatMode = ValueAnimator.REVERSE
+        animator.duration = 3000
+        return animator
+
     }
 }
