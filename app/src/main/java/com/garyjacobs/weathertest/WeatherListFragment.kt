@@ -24,6 +24,16 @@ class WeatherListFragment : Fragment() {
 
     private lateinit var myActivity: WeatherActivity
 
+    companion object {
+        val TAG = WeatherListFragment::class.java.simpleName
+        var me: WeatherListFragment? = null
+        fun getInstance(): WeatherListFragment {
+            if (me == null) {
+                WeatherListFragment.me = WeatherListFragment()
+            }
+            return me!!
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater!!.inflate(R.layout.weather_list, container, false)
@@ -32,7 +42,7 @@ class WeatherListFragment : Fragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         myActivity = activity as WeatherActivity
-        weather_list!!.layoutManager = LinearLayoutManager(activity,LinearLayoutManager.HORIZONTAL,false)
+        weather_list!!.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
         val myRecyclerViewAdapter = MyRecyclerViewAdapter(myActivity.weatherApplication.forecast!!, View.OnClickListener { v -> onItemClick(weather_list!!.getChildAdapterPosition(v)) })
         weather_list!!.adapter = myRecyclerViewAdapter
     }

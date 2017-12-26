@@ -5,6 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/highlighted_text_material_light"
-    android:id="@+id/weather_list_container">
+    android:id="@+id/weather_container">
 </FrameLayout>
 </LinearLayout>

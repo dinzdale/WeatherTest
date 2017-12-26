@@ -7,14 +7,14 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/weather_list_container"
+        android:id="@+id/weather_container"
         android:background="@color/background_material_dark"
         android:layout_weight="1">
 
     </FrameLayout>
 
     <FrameLayout
-        android:id="@+id/weather_details_container"
+        android:id="@+id/extended_weather_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/background_material_light"

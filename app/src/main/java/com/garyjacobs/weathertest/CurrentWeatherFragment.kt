@@ -44,6 +44,17 @@ class CurrentWeatherFragment : Fragment() {
     lateinit var myActivity: WeatherActivity
     lateinit var extendForecastAnimation: ObjectAnimator
 
+    companion object {
+        val TAG = CurrentWeatherFragment::class.java.simpleName
+        var me : CurrentWeatherFragment? = null
+        fun getInstance() : CurrentWeatherFragment {
+            if (me == null) {
+                me = CurrentWeatherFragment()
+            }
+            return me!!
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
         super.onCreateView(inflater, container, savedInstanceState)
         myActivity = activity as WeatherActivity
@@ -79,9 +90,8 @@ class CurrentWeatherFragment : Fragment() {
                     }
                 }
             })
-            cw_constraint_layout.setOnLongClickListener {
+            cw_constraint_layout.setOnClickListener {
                 myActivity.weatherApplication.bus.post(CurrentWeatherSelectedEvent())
-                true
             }
         }
         extendForecastAnimation = doAlphaAnimation(extended_forcast)

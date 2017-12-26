@@ -173,18 +173,18 @@ class LocaterService : Service() {
 
     private fun initLocationServices() {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-//        googleAPIClient = GoogleApiClient.Builder(this)
-//                .addApi(LocationServices.API)
-//                .addConnectionCallbacks(connectionCallBackListener)
-//                .addOnConnectionFailedListener(connectionFailedListener)
-//                .build()
-//
-//        locationRequest = LocationRequest.create()
-//                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-//                .setInterval((10 * 1000).toLong())        // 10 seconds, in milliseconds
-//                .setFastestInterval((1 * 1000).toLong()) // 1 second, in milliseconds
-//
-//        googleAPIClient.connect()
+        googleAPIClient = GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(connectionCallBackListener)
+                .addOnConnectionFailedListener(connectionFailedListener)
+                .build()
+
+        locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval((10 * 1000).toLong())        // 10 seconds, in milliseconds
+                .setFastestInterval((1 * 1000).toLong()) // 1 second, in milliseconds
+
+        googleAPIClient.connect()
 
     }
 
