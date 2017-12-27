@@ -165,7 +165,6 @@ class WeatherMainActivity : WeatherActivity() {
 //        if (currentWeatherFragment == null || createdNewCurrentWeatherFrag) {
 //            currentWeatherFragment = CurrentWeatherFragment()
 //        }
-
         loadFragment(CurrentWeatherFragment(), CurrentWeatherFragment.TAG, R.id.weather_container, false)
 
     }
@@ -175,7 +174,7 @@ class WeatherMainActivity : WeatherActivity() {
 //        if (weatherListFragment == null) {
 //            weatherListFragment = WeatherListFragment.getInstance()
 //        }
-        var containerID = R.id.weather_container
+        location_cb.visibility = View.GONE
         if (isTwoPane) {
             loadFragment(WeatherListFragment(), WeatherListFragment.TAG, R.id.extended_weather_container, false)
         } else {
@@ -217,6 +216,7 @@ class WeatherMainActivity : WeatherActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
+        location_cb.visibility = View.VISIBLE
         loadCurrentWeather = true
     }
     // get selections from list

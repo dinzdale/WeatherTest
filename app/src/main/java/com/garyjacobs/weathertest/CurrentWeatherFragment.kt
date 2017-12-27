@@ -79,7 +79,7 @@ class CurrentWeatherFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        current_weather_map.onSaveInstanceState(outState)
+        current_weather_map?.onSaveInstanceState(outState)
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
