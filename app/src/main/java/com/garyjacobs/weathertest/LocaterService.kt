@@ -1,10 +1,12 @@
 package com.garyjacobs.weathertest
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.net.ConnectivityManager
 import android.os.*
 import android.widget.Toast
 import com.google.android.gms.common.ConnectionResult
@@ -45,7 +47,8 @@ import java.util.function.Consumer
 class LocaterService : Service() {
 
     companion object {
-        val CONNECTING = -1
+        val NOINTERENT = -1
+        val CONNECTING = 1
         val REQUESTCURRENTLOCATION = 3
         val REQUESTEDCURRENTLOCATION = -3
         val REQUESTLOCATION = 4
@@ -76,84 +79,88 @@ class LocaterService : Service() {
         override fun handleMessage(incomingMessage: Message?) {
             incomingMessage?.let {
                 outboundmessenger = it.replyTo
-                if (apiConnected) {
-                    when (incomingMessage.what) {
-                        REQUESTCURRENTLOCATION -> fusedLocationProviderClient.lastLocation.addOnSuccessListener {
-                            it.getReverseGeocodeLocation()
-                                    ?.subscribe { addresses, throwable ->
-                                        addresses?.let {
-                                            getForecast(addresses[0].latitude, addresses[0].longitude)
-                                                    ?.subscribe { forecast, throwable ->
-                                                        forecast?.let {
-                                                            val bundle = Bundle()
-                                                            bundle.putParcelableArray("LOCATION", addresses)
-                                                            outboundmessenger.sendMessage(REQUESTEDCURRENTLOCATION, bundle)
-                                                        } ?: handleError(REQUESTEDCURRENTLOCATION, throwable.message)
-                                                    }
-                                        } ?: handleError(REQUESTEDCURRENTLOCATION, throwable.message)
-                                    } ?: handleError(REQUESTEDCURRENTLOCATION, "Error getting current location")
-                        }
-                        REQUESTLOCATION -> incomingMessage.data.getString("LOCATION")?.let {
-                            getGeocodeLocation(it)
-                                    ?.subscribe { addresses, throwable ->
-                                        addresses?.let {
-                                            val bundle = Bundle()
-                                            bundle.putParcelableArray("LOCATION", it)
-                                            if (addresses.size == 1) {
-                                                getForecast(it[0].latitude, it[0].longitude)
-                                                        .subscribe { forecast, throwable ->
+                if (isNetworkedConnected()) {
+                    if (apiConnected) {
+                        when (incomingMessage.what) {
+                            REQUESTCURRENTLOCATION -> fusedLocationProviderClient.lastLocation.addOnSuccessListener {
+                                it.getReverseGeocodeLocation()
+                                        ?.subscribe { addresses, throwable ->
+                                            addresses?.let {
+                                                getForecast(addresses[0].latitude, addresses[0].longitude)
+                                                        ?.subscribe { forecast, throwable ->
                                                             forecast?.let {
-                                                                outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
-                                                            } ?: handleError(REQUESTEDLOCATION, throwable.message)
+                                                                val bundle = Bundle()
+                                                                bundle.putParcelableArray("LOCATION", addresses)
+                                                                outboundmessenger.sendMessage(REQUESTEDCURRENTLOCATION, bundle)
+                                                            } ?: handleError(REQUESTEDCURRENTLOCATION, throwable.message)
                                                         }
-                                            } else {
-                                                outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
-                                            }
-                                        } ?: handleError(REQUESTEDLOCATION, throwable.message)
-                                    }
-                        }
+                                            } ?: handleError(REQUESTEDCURRENTLOCATION, throwable.message)
+                                        } ?: handleError(REQUESTEDCURRENTLOCATION, "Error getting current location")
+                            }
+                            REQUESTLOCATION -> incomingMessage.data.getString("LOCATION")?.let {
+                                getGeocodeLocation(it)
+                                        ?.subscribe { addresses, throwable ->
+                                            addresses?.let {
+                                                val bundle = Bundle()
+                                                bundle.putParcelableArray("LOCATION", it)
+                                                if (addresses.size == 1) {
+                                                    getForecast(it[0].latitude, it[0].longitude)
+                                                            .subscribe { forecast, throwable ->
+                                                                forecast?.let {
+                                                                    outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
+                                                                } ?: handleError(REQUESTEDLOCATION, throwable.message)
+                                                            }
+                                                } else {
+                                                    outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
+                                                }
+                                            } ?: handleError(REQUESTEDLOCATION, throwable.message)
+                                        }
+                            }
 
-                        REQUESTCURRENTWEATHERCURRENTLOCATION -> fusedLocationProviderClient
-                                .lastLocation
-                                .addOnSuccessListener {
-                                    it.getReverseGeocodeLocation()
-                                            ?.subscribe { addresses, throwable ->
-                                                addresses?.let {
+                            REQUESTCURRENTWEATHERCURRENTLOCATION -> fusedLocationProviderClient
+                                    .lastLocation
+                                    .addOnSuccessListener {
+                                        it.getReverseGeocodeLocation()
+                                                ?.subscribe { addresses, throwable ->
+                                                    addresses?.let {
+                                                        getCurrentWeather(addresses[0].latitude.toFloat(), addresses[0].longitude.toFloat())
+                                                                .subscribe { currentWeather, throwable ->
+                                                                    currentWeather?.let {
+                                                                        val bundle = Bundle()
+                                                                        bundle.putParcelableArray("LOCATION", addresses)
+                                                                        outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION, bundle)
+                                                                    } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
+                                                                }
+                                                    } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
+                                                }
+                                    }
+
+                            REQUESTCURRENTWEATHERWITHLOCATION -> incomingMessage.data.getString("LOCATION")?.let {
+                                getGeocodeLocation(it)
+                                        ?.subscribe { addresses, throwable ->
+                                            addresses?.let {
+                                                val bundle = Bundle()
+                                                bundle.putParcelableArray("LOCATION", addresses)
+                                                if (addresses.size == 1) {
                                                     getCurrentWeather(addresses[0].latitude.toFloat(), addresses[0].longitude.toFloat())
                                                             .subscribe { currentWeather, throwable ->
-                                                                currentWeather?.let {
-                                                                    val bundle = Bundle()
-                                                                    bundle.putParcelableArray("LOCATION", addresses)
-                                                                    outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION, bundle)
-                                                                } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
+                                                                application.location = addresses[0]
+                                                                application.currentWeather = currentWeather
+                                                                outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERWITHLOCATION, bundle)
                                                             }
-                                                } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
-                                            }
-                                }
 
-                        REQUESTCURRENTWEATHERWITHLOCATION -> incomingMessage.data.getString("LOCATION")?.let {
-                            getGeocodeLocation(it)
-                                    ?.subscribe { addresses, throwable ->
-                                        addresses?.let {
-                                            val bundle = Bundle()
-                                            bundle.putParcelableArray("LOCATION", addresses)
-                                            if (addresses.size == 1) {
-                                                getCurrentWeather(addresses[0].latitude.toFloat(), addresses[0].longitude.toFloat())
-                                                        .subscribe { currentWeather, throwable ->
-                                                            application.location = addresses[0]
-                                                            application.currentWeather = currentWeather
-                                                            outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERWITHLOCATION, bundle)
-                                                        }
-
-                                            } else outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERWITHLOCATION, bundle)
-                                        } ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, throwable.message)
-                                    } ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, "Could not get location")
-                        } ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, "Invalid address entered")
-                        else -> {
+                                                } else outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERWITHLOCATION, bundle)
+                                            } ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, throwable.message)
+                                        } ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, "Could not get location")
+                            } ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, "Invalid address entered")
+                            else -> {
+                            }
                         }
+                    } else {
+                        outboundmessenger.sendMessage(CONNECTING)
                     }
                 } else {
-                    outboundmessenger.sendMessage(CONNECTING)
+                    outboundmessenger.sendMessage(NOINTERENT)
                 }
             }
         }
@@ -161,9 +168,8 @@ class LocaterService : Service() {
 
     private fun handleError(messageID: Int, errorMessage: String? = "ERROR ENCOUNTERED") {
         val bundle = Bundle()
-        bundle.putBoolean("STATUS", false)
         bundle.putString("ERROR", errorMessage)
-        outboundmessenger.sendMessage(messageID, bundle)
+        outboundmessenger.sendMessage(messageID, bundle, status = false)
     }
 
     override fun onBind(intent: Intent?) = inBoundMessenger.binder
@@ -292,4 +298,8 @@ class LocaterService : Service() {
                 .singleOrError()
     }
 
+    private fun isNetworkedConnected(): Boolean {
+        val connMgr = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return connMgr.activeNetworkInfo?.isConnected ?: false
+    }
 }

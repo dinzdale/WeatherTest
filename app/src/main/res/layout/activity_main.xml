@@ -9,10 +9,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".WeatherMainActivity">
 
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -23,12 +19,12 @@
             android:id="@+id/location_cb"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:hint="@string/location_hint"
             android:background="@android:color/holo_red_light"
             android:completionThreshold="1"
-            android:singleLine="true"
+            android:hint="@string/location_hint"
             android:lines="1"
-            android:visibility="invisible"/>
+            android:singleLine="true"
+            android:visibility="invisible" />
 
 
         <FrameLayout

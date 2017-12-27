@@ -1,6 +1,9 @@
 package model
 
+import android.content.Context
 import android.location.Address
+import android.net.ConnectivityManager
+import android.provider.Settings
 
 /**
  * Created by garyjacobs on 12/19/17.
@@ -36,3 +39,5 @@ fun Address.formatAddress(): String {
     return "${getAddressLine(0)} ${getAddressLine(1)} ${getAddressLine(2)} ${getAddressLine(3)} " + "${getAddressLine(4)} $countryName $postalCode"
 
 }
+
+

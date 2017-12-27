@@ -28,4 +28,8 @@
     <string name="temp_min">Temp Min: %1$d</string>
     <string name="humidity">Humidity: %1$d</string>
 
+    // alert strings
+    <string name="no_network_warning">No network detected, please turn it on and try again</string>
+    <string name="please_wait">working...please wait</string>
+    <string name="default_error_dialog_msg">oops ... something went wrong, please try again</string>
 </resources>
