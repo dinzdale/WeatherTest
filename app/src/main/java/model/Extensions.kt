@@ -5,19 +5,34 @@ import android.location.Address
 /**
  * Created by garyjacobs on 12/19/17.
  */
-fun Address.formatAddress() : String {
-    /*
-    nxtAddress.latitude = location.latLng.lat.toDouble()
-    nxtAddress.longitude = location.latLng.lng.toDouble()
-    nxtAddress.postalCode = location.postalCode
-    nxtAddress.countryName = location.adminArea1
-    nxtAddress.url = location.mapUrl
-    nxtAddress.setAddressLine(0,location.street)
-    nxtAddress.setAddressLine(1,location.adminArea6)
-    nxtAddress.setAddressLine(2, location.adminArea5)
-    nxtAddress.setAddressLine(3,location.adminArea4)
-    nxtAddress.setAddressLine( 4, location.adminArea3)
-    */
+private val windirectionMap = hashMapOf<IntRange, String>(348..360 to "N",
+        0..11 to "N",
+        12..33 to "NNE",
+        34..56 to "NE",
+        57..78 to "E",
+        79..101 to "ESE",
+        102..123 to "SE",
+        124..146 to "SSE",
+        147..168 to "S",
+        169..191 to "SSW",
+        192..213 to "SW",
+        214..236 to "WSW",
+        237..258 to "W",
+        259..281 to "WNW",
+        282..303 to "NW",
+        304..326 to "NW",
+        327..348 to "NNW",
+        349..360 to "N")
+
+fun getWindDirection(deg: Int): String? {
+    val matchedKey = windirectionMap.keys.filter {
+        it.contains(deg)
+    }[0]
+    return windirectionMap.get(matchedKey)
+}
+
+fun Address.formatAddress(): String {
+
     return "${getAddressLine(0)} ${getAddressLine(1)} ${getAddressLine(2)} ${getAddressLine(3)} " + "${getAddressLine(4)} $countryName $postalCode"
 
 }

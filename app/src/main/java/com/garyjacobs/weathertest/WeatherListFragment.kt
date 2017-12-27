@@ -15,6 +15,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import model.Forecast
 import kotlinx.android.synthetic.main.weather_list.*
+import kotlinx.android.synthetic.main.weather_list_item.*
+import kotlinx.android.synthetic.main.weather_list_item.view.*
+import model.getWindDirection
 
 /**
  * A simple [Fragment] subclass.
@@ -48,22 +51,17 @@ class WeatherListFragment : Fragment() {
     }
 
     private inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var tempDay: TextView
-        var humidity: TextView
-        var description: TextView
-        var weatherIcon: ImageView
-        var dayOfWeek_Month_DayOfMonth: TextView
 
-
-        init {
-            tempDay = itemView.findViewById(R.id.temp_day) as TextView
-            humidity = itemView.findViewById(R.id.humidity) as TextView
-            description = itemView.findViewById(R.id.description) as TextView
-            weatherIcon = itemView.findViewById(R.id.weather_icon) as ImageView
-            dayOfWeek_Month_DayOfMonth = itemView.findViewById(R.id.dayofweek_month_dayofmonth) as TextView
-
-        }
-
+        var date = itemView.forecast_date
+        var description = itemView.forecast_description
+        var tempMorn = itemView.temp_morn
+        var tempDay = itemView.temp_day
+        var tempNight = itemView.temp_night
+        var tempMax = itemView.temp_max
+        var tempMin = itemView.temp_min
+        var humidity = itemView.weather_humidity
+        var wind = itemView.forecast_wind
+        var weatherIcon = itemView.weather_icon
 
     }
 
@@ -79,20 +77,27 @@ class WeatherListFragment : Fragment() {
         }
 
         override fun onBindViewHolder(myViewHolder: MyViewHolder, position: Int) {
-            val forecastDetailsList = forecast.list
-            myViewHolder.tempDay.text = forecastDetailsList[position].temp.day.toInt().toString()
-            myViewHolder.humidity.text = forecastDetailsList[position].humidity.toInt().toString()
-            myViewHolder.description.text = forecastDetailsList[position].weather[0].description
-            // set weekday
+            val forecastDetails = forecast.list[position]
+            val weather = forecastDetails.weather[0]
+            val temp = forecastDetails.temp
 
+            // calculate date
             val calendar = Calendar.getInstance()
             var date = calendar.time
             val newTimeMillis = date.time + position * 24 * 60 * 60 * 1000
             calendar.timeInMillis = newTimeMillis
             date = calendar.time
             val simpleDateFormat = SimpleDateFormat(getString(R.string.dayofweek_month_dayofmonth))
-            myViewHolder.dayOfWeek_Month_DayOfMonth.text = simpleDateFormat.format(date)
-            myActivity!!.weatherApplication.imageManager.setImage(forecastDetailsList[position].weather[0].icon, myViewHolder.weatherIcon)
+            myViewHolder.date.text = simpleDateFormat.format(date)
+            myViewHolder.description.text = weather.description
+            myViewHolder.tempMorn.text = getString(R.string.temp_morn, temp.morn.toInt())
+            myViewHolder.tempDay.text = getString(R.string.temp_morn, temp.day.toInt())
+            myViewHolder.tempNight.text = getString(R.string.temp_night, temp.night.toInt())
+            myViewHolder.tempMax.text = getString(R.string.temp_max, temp.max.toInt())
+            myViewHolder.tempMin.text = getString(R.string.temp_min, temp.min.toInt())
+            myViewHolder.humidity.text = getString(R.string.humidity, forecastDetails.humidity)
+            myViewHolder.wind.text = getString(R.string.current_wind, forecastDetails.speed.toInt(), getWindDirection(forecastDetails.deg))
+            myActivity.weatherApplication.imageManager.setImage(weather.icon, myViewHolder.weatherIcon)
             //            String url = getString(R.string.openweathermap_base_url) + "/img/w/" + forecastDetailsList.get(position).getWeather().get(0).getIcon();
             //            Picasso.with(myActivity)
             //                    .load(url)

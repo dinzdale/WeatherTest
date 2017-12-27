@@ -1,59 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card_view"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_width="325dp"
+    android:layout_height="275dp"
     android:layout_gravity="center"
-    card_view:cardCornerRadius="4dp"
+    android:layout_margin="5dp"
+    card_view:cardCornerRadius="20dp"
     card_view:cardElevation="10dp">
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp">
+
+        <TextView
+            android:id="@+id/forecast_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:fontFamily="@font/jockey_one"
+            android:text="dayofweek_month_dayofmonth"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textSize="18sp"
+            card_view:layout_constraintEnd_toEndOf="parent"
+            card_view:layout_constraintLeft_toLeftOf="parent"
+            card_view:layout_constraintRight_toRightOf="parent"
+            card_view:layout_constraintStart_toStartOf="parent"
+            card_view:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/weather_icon"
-            android:layout_width="250px"
-            android:layout_height="250px"
-            android:layout_below="@+id/dayofweek_month_dayofmonth"
-            android:layout_alignLeft="@+id/dayofweek_month_dayofmonth" />
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            card_view:layout_constraintBottom_toBottomOf="parent"
+            card_view:layout_constraintHorizontal_bias="0.813"
+            card_view:layout_constraintLeft_toLeftOf="parent"
+            card_view:layout_constraintRight_toRightOf="parent"
+            card_view:layout_constraintTop_toBottomOf="@+id/forecast_description"
+            card_view:layout_constraintVertical_bias="0.07" />
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:elevation="50dp"
-            android:layout_toRightOf="@+id/weather_icon"
-            android:id="@+id/temp_details"
-            android:layout_alignTop="@+id/weather_icon">
-
-            <TextView
-                android:id="@+id/description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="description" />
-
-            <TextView
-                android:id="@+id/temp_day"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="temp_day" />
-
-            <TextView
-                android:id="@+id/humidity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
 
         <TextView
+            android:id="@+id/forecast_description"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/jockey_one"
+            android:gravity="center"
+            android:text="description"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            card_view:layout_constraintEnd_toEndOf="@+id/weather_icon"
+            card_view:layout_constraintStart_toStartOf="@+id/weather_icon"
+            card_view:layout_constraintTop_toBottomOf="@+id/forecast_date" />
+
+        <TextView
+            android:id="@+id/temp_morn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:fontFamily="@font/jockey_one"
+            android:text="temp_morn"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textStyle="bold"
+            card_view:layout_constraintBottom_toTopOf="@+id/temp_day"
+            card_view:layout_constraintEnd_toStartOf="@+id/weather_icon"
+            card_view:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/temp_day"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:fontFamily="@font/jockey_one"
+            android:text="temp_day"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textStyle="bold"
+            card_view:layout_constraintBottom_toTopOf="@+id/temp_night"
+            card_view:layout_constraintEnd_toStartOf="@+id/weather_icon"
+            card_view:layout_constraintLeft_toLeftOf="parent" />
+
+        <TextView
+            android:id="@+id/temp_night"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:fontFamily="@font/jockey_one"
+            android:text="temp_night"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textStyle="bold"
+            card_view:layout_constraintBottom_toTopOf="@+id/temp_max"
+            card_view:layout_constraintEnd_toStartOf="@+id/weather_icon"
+            card_view:layout_constraintLeft_toLeftOf="parent" />
+
+        <TextView
+            android:id="@+id/temp_max"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:fontFamily="@font/jockey_one"
+            android:text="temp_max"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textStyle="bold"
+            card_view:layout_constraintBottom_toTopOf="@+id/temp_min"
+            card_view:layout_constraintEnd_toStartOf="@+id/weather_icon"
+            card_view:layout_constraintLeft_toLeftOf="parent" />
+
+        <TextView
+            android:id="@+id/temp_min"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:fontFamily="@font/jockey_one"
+            android:text="temp_min"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textStyle="bold"
+            card_view:layout_constraintBottom_toBottomOf="@+id/weather_icon"
+            card_view:layout_constraintEnd_toStartOf="@+id/weather_icon"
+            card_view:layout_constraintLeft_toLeftOf="parent" />
+
+        <TextView
+            android:id="@+id/weather_humidity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/dayofweek_month_dayofmonth"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true" />
+            android:layout_marginEnd="35dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/jockey_one"
+            android:text="humidity"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textStyle="bold"
+            card_view:layout_constraintEnd_toStartOf="@+id/forecast_wind"
+            card_view:layout_constraintStart_toStartOf="@+id/weather_icon"
+            card_view:layout_constraintTop_toBottomOf="@+id/weather_icon" />
 
-    </RelativeLayout>
+        <TextView
+            android:id="@+id/forecast_wind"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:fontFamily="@font/jockey_one"
+            android:text="wind"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textStyle="bold"
+            card_view:layout_constraintEnd_toEndOf="@+id/weather_icon"
+            card_view:layout_constraintTop_toTopOf="@+id/weather_humidity" />
+
+
+    </android.support.constraint.ConstraintLayout>
 
 </android.support.v7.widget.CardView>

@@ -19,4 +19,13 @@
     <string name="city">City</string>
     <string name="extend_forecast">extended forecast ></string>
     <string name="location_hint">enter location, clear for current location</string>
+
+    // details strings
+    <string name="temp_morn">Temp Morning: %1$d</string>
+    <string name="temp_day">Temp Day: %1$d</string>
+    <string name="temp_night">Temp Night: %1$d</string>
+    <string name="temp_max">Temp Max: %1$d</string>
+    <string name="temp_min">Temp Min: %1$d</string>
+    <string name="humidity">Humidity: %1$d</string>
+
 </resources>
