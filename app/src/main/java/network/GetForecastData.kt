@@ -8,6 +8,7 @@ import android.os.RemoteException
 import android.widget.Toast
 import com.garyjacobs.weathertest.R
 import com.garyjacobs.weathertest.WeatherTestApplication
+import com.google.android.gms.maps.model.Tile
 import io.reactivex.Observable
 import model.CurrentWeather
 
@@ -16,6 +17,7 @@ import java.net.URL
 import model.Forecast
 import retrofit2.Call
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 
@@ -39,4 +41,11 @@ interface GetForecastData {
     @GET("data/2.5/weather?mode=json")
     fun getCurrrentWeatherByCoords(@Query("lat") lat: Float, @Query("lon") lon: Float, @Query("appid") appid: String, @Query("units") units: String = "imperial"): Observable<CurrentWeather>
 
+    // http://tile.openweathermap.org/map/{layer}/{z}/{x}/{y}.png?appid={api_key}
+    @GET("map/{layer}/{z}/{x}/{y}.png")
+    fun getWeatherTile(@Path("layer") layer: String,
+                       @Path("z") z: Int,
+                       @Path("x") x: Int,
+                       @Path("y") y: Int,
+                       @Query("appid") appid: Int): Observable<Tile>
 }

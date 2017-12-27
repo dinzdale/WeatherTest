@@ -11,6 +11,14 @@ import android.view.ViewGroup
 import android.support.v7.widget.RecyclerView
 import android.widget.ImageView
 import android.widget.TextView
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.TileOverlayOptions
+import com.google.android.gms.maps.model.UrlTileProvider
+import kotlinx.android.synthetic.main.current_weather.*
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import model.Forecast
@@ -18,6 +26,7 @@ import kotlinx.android.synthetic.main.weather_list.*
 import kotlinx.android.synthetic.main.weather_list_item.*
 import kotlinx.android.synthetic.main.weather_list_item.view.*
 import model.getWindDirection
+import java.net.URL
 
 /**
  * A simple [Fragment] subclass.
@@ -48,6 +57,57 @@ class WeatherListFragment : Fragment() {
         weather_list!!.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
         val myRecyclerViewAdapter = MyRecyclerViewAdapter(myActivity.weatherApplication.forecast!!, View.OnClickListener { v -> onItemClick(weather_list!!.getChildAdapterPosition(v)) })
         weather_list!!.adapter = myRecyclerViewAdapter
+        // handle map
+        // setup up map in background
+        extended_map.onCreate(savedInstanceState)
+        extended_map.getMapAsync(object : OnMapReadyCallback {
+
+            override fun onMapReady(googleMapApi: GoogleMap?) {
+                googleMapApi?.let {
+                    val latlon = LatLng(myActivity.weatherApplication.location.latitude, myActivity.weatherApplication.location.longitude)
+                    it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 0.toFloat()))
+                    it.addMarker(MarkerOptions()
+                            .position(latlon))
+                    val tileOverlayOptions = TileOverlayOptions()
+                            .tileProvider(object : UrlTileProvider(extended_map.width, extended_map.height) {
+                                override fun getTileUrl(x: Int, y: Int, zoom: Int): URL {
+                                    return URL(getString(R.string.openweathermap_tile_url, "temp_new", zoom, x, y, getString(R.string.openweathermap_appid)))
+                                }
+                            })
+                    it.addTileOverlay(tileOverlayOptions)
+                }
+            }
+        })
+    }
+
+    override fun onStart() {
+        super.onStart()
+        extended_map?.onStart()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        extended_map?.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        extended_map?.onPause()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        extended_map?.onStop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        extended_map?.onDestroy()
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        extended_map?.onLowMemory()
     }
 
     private inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

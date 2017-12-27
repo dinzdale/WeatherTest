@@ -180,8 +180,12 @@ class WeatherMainActivity : WeatherActivity() {
 //        if (currentWeatherFragment == null || createdNewCurrentWeatherFrag) {
 //            currentWeatherFragment = CurrentWeatherFragment()
 //        }
-        loadFragment(CurrentWeatherFragment(), CurrentWeatherFragment.TAG, R.id.weather_container, false)
-
+        if (isTwoPane) {
+            loadFragment(CurrentWeatherFragment(), CurrentWeatherFragment.TAG, R.id.weather_container, true)
+        }
+        else {
+            loadFragment(CurrentWeatherFragment(), CurrentWeatherFragment.TAG, R.id.weather_container, false)
+        }
     }
 
     private fun loadWeatherListFragment() {

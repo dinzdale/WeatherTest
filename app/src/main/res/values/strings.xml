@@ -3,10 +3,13 @@
     <string name="google_maps_key">AIzaSyBZqyg1-nvPviVm1mFZFPgxrid5qOJzruU</string>
     <string name="action_settings">Settings</string>
     <string name="openweathermap_appid">0ff4cd732ec220998352961a3c4f2980</string>
+    <string name="openweathermap_appid_new">f414dedce75c80e48379c0a47911dcfc</string>
     <string name="mapquest_consumer_key">rzpzA4yKuNAsCGPCUWaGCwc8zyjbXJM1</string>
     <string name="mapquest_secret_key">CwMUUASkQphc9RpO</string>
     <!-- URLS -->
     <string name="openweathermap_base_url">http://api.openweathermap.org</string>
+    <string name="openweathermap_tile_url">http://tile.openweathermap.org/map/%1$s/%2$d/%3$d/%4$d.png?appid=%5$s</string>
+
     <string name="mapquest_geocode_base_url">http://www.mapquestapi.com</string>
     <string name="daily_forcast_url_retro">/data/2.5/forecast/daily?q={q},{country_code}&amp;cnt={cnt}&amp;appid={app_id}</string>
 
