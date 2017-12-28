@@ -120,7 +120,7 @@ class WeatherMainActivity : WeatherActivity() {
                         if (message.data.getBoolean("STATUS")) {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             supportActionBar?.title = addresses[0].formatAddress()
-                            loadWeatherListFragment()
+                            loadAllFragments()
                         } else {
                             showErrorDialog(message.data.getString("ERROR"))
                         }
@@ -132,7 +132,7 @@ class WeatherMainActivity : WeatherActivity() {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             if (addresses.size == 1) {
                                 supportActionBar?.title = addresses[0].formatAddress()
-                                loadWeatherListFragment()
+                                loadAllFragments()
                             } else {
                                 location_cb.updateComboBoxSelections(addresses)
                             }
@@ -146,7 +146,7 @@ class WeatherMainActivity : WeatherActivity() {
                         if (message.data.getBoolean("STATUS")) {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             supportActionBar?.title = addresses[0].formatAddress()
-                            loadCurrentWeatherFragment()
+                            loadAllFragments()
                         } else {
                             showErrorDialog(message.data.getString("ERROR"))
                         }
@@ -158,7 +158,7 @@ class WeatherMainActivity : WeatherActivity() {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             if (addresses.size == 1) {
                                 supportActionBar?.title = addresses[0].formatAddress()
-                                loadCurrentWeatherFragment()
+                                loadAllFragments()
                             } else {
                                 location_cb.updateComboBoxSelections(addresses)
                             }
@@ -174,40 +174,32 @@ class WeatherMainActivity : WeatherActivity() {
         }
     }
 
-    private fun loadCurrentWeatherFragment() {
-
-//        var currentWeatherFragment = fragmentManager.findFragmentByTag(CurrentWeatherFragment.TAG)
-//        if (currentWeatherFragment == null || createdNewCurrentWeatherFrag) {
-//            currentWeatherFragment = CurrentWeatherFragment()
-//        }
-        if (isTwoPane) {
-            loadFragment(CurrentWeatherFragment(), CurrentWeatherFragment.TAG, R.id.weather_container, true)
-        }
-        else {
-            loadFragment(CurrentWeatherFragment(), CurrentWeatherFragment.TAG, R.id.weather_container, false)
-        }
-    }
-
-    private fun loadWeatherListFragment() {
-//        var weatherListFragment = fragmentManager.findFragmentByTag(WeatherListFragment.TAG)
-//        if (weatherListFragment == null) {
-//            weatherListFragment = WeatherListFragment.getInstance()
-//        }
-        location_cb.visibility = View.GONE
-        if (isTwoPane) {
-            loadFragment(WeatherListFragment(), WeatherListFragment.TAG, R.id.extended_weather_container, false)
-        } else {
-            loadFragment(WeatherListFragment(), WeatherListFragment.TAG, R.id.weather_container, true)
-        }
-    }
-
-    private fun loadFragment(fragment: Fragment, tag: String, containerID: Int, addToBackStack: Boolean = false) {
+    private fun loadAllFragments() {
         val fragTM: FragmentTransaction = fragmentManager.beginTransaction()
-        fragTM.replace(containerID, fragment, tag)
-        if (addToBackStack) {
-            fragTM.addToBackStack(tag)
+        if (isTwoPane) {
+            if (loadCurrentWeather) {
+                location_cb.visibility = View.VISIBLE
+                fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
+                        .commit()
+            } else {
+                location_cb.visibility = View.GONE
+                fragTM.replace(R.id.extended_weather_container, WeatherListFragment(), WeatherListFragment.TAG)
+                        .addToBackStack(WeatherListFragment.TAG)
+                        .commit()
+            }
+        } else {
+            if (loadCurrentWeather) {
+                location_cb.visibility = View.VISIBLE
+                fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
+                        .commit()
+            } else {
+                location_cb.visibility = View.GONE
+                fragTM.replace(R.id.weather_container, WeatherListFragment(), WeatherListFragment.TAG)
+                        .addToBackStack(WeatherListFragment.TAG)
+                        .commit()
+            }
+
         }
-        fragTM.commit()
     }
 
 

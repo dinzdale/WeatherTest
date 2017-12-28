@@ -69,12 +69,13 @@ class WeatherListFragment : Fragment() {
                     it.addMarker(MarkerOptions()
                             .position(latlon))
                     val tileOverlayOptions = TileOverlayOptions()
-                            .tileProvider(object : UrlTileProvider(extended_map.width, extended_map.height) {
+                            .tileProvider(object : UrlTileProvider(256,256) {
                                 override fun getTileUrl(x: Int, y: Int, zoom: Int): URL {
                                     return URL(getString(R.string.openweathermap_tile_url, "temp_new", zoom, x, y, getString(R.string.openweathermap_appid)))
                                 }
                             })
-                    it.addTileOverlay(tileOverlayOptions)
+                    // hold off ... to many api calls
+                    //it.addTileOverlay(tileOverlayOptions)
                 }
             }
         })
@@ -151,7 +152,7 @@ class WeatherListFragment : Fragment() {
             myViewHolder.date.text = simpleDateFormat.format(date)
             myViewHolder.description.text = weather.description
             myViewHolder.tempMorn.text = getString(R.string.temp_morn, temp.morn.toInt())
-            myViewHolder.tempDay.text = getString(R.string.temp_morn, temp.day.toInt())
+            myViewHolder.tempDay.text = getString(R.string.temp_day, temp.day.toInt())
             myViewHolder.tempNight.text = getString(R.string.temp_night, temp.night.toInt())
             myViewHolder.tempMax.text = getString(R.string.temp_max, temp.max.toInt())
             myViewHolder.tempMin.text = getString(R.string.temp_min, temp.min.toInt())
