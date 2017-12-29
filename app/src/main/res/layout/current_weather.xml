@@ -7,6 +7,11 @@
     android:layout_height="match_parent"
     android:background="#80007777">
 
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/current_weather_map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <android.support.v7.widget.CardView
         android:id="@+id/cw_cardview"
         android:layout_width="260dp"
@@ -152,12 +157,6 @@
                 app:layout_constraintEnd_toEndOf="parent" />
         </android.support.constraint.ConstraintLayout>
     </android.support.v7.widget.CardView>
-
-    <com.google.android.gms.maps.MapView
-        android:id="@+id/current_weather_map"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:textAlignment="center" />
 
 
 </FrameLayout>

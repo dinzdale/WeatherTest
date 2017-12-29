@@ -1,6 +1,6 @@
 package com.garyjacobs.weathertest
 
-import Events.CurrentWeatherSelectedEvent
+import Events.*
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.app.Fragment
@@ -10,7 +10,6 @@ import android.util.Range
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewPropertyAnimator
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -29,8 +28,8 @@ class CurrentWeatherFragment : Fragment() {
 
     companion object {
         val TAG = CurrentWeatherFragment::class.java.simpleName
-        var me : CurrentWeatherFragment? = null
-        fun getInstance() : CurrentWeatherFragment {
+        var me: CurrentWeatherFragment? = null
+        fun getInstance(): CurrentWeatherFragment {
             if (me == null) {
                 me = CurrentWeatherFragment()
             }
@@ -70,11 +69,19 @@ class CurrentWeatherFragment : Fragment() {
                     }
                 }
             })
-            cw_constraint_layout.setOnClickListener {
-                myActivity.weatherApplication.bus.post(CurrentWeatherSelectedEvent())
-            }
+
+            getFlingObervable(cw_cardview)
+                    .subscribe {
+                        myLog("Fling it Event", it.event1!!, it.event2)
+                    }
+
+            getSingleTapObservable(extended_forcast)
+                    .subscribe {
+                        myActivity.weatherApplication.bus.post(CurrentWeatherSelectedEvent())
+                    }
+
+            extendForecastAnimation = doAlphaAnimation(extended_forcast)
         }
-        extendForecastAnimation = doAlphaAnimation(extended_forcast)
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
