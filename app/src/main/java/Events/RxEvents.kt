@@ -1,6 +1,7 @@
 package Events
 
 import android.support.v4.view.GestureDetectorCompat
+import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -40,11 +41,22 @@ fun getSingleTapObservable(view: View): Observable<MotionEvent> {
                 return super.onSingleTapConfirmed(e)
             }
         })
-        view.setOnTouchListener { v, event ->
-            if (!v.hasOnClickListeners()) {
-                v.setOnClickListener { }
+        if (view is RecyclerView) {
+            (view as RecyclerView)
+                    .addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
+                        override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean {
+                            gestureDetecor.onTouchEvent(e)
+                            return super.onInterceptTouchEvent(rv, e)
+                        }
+                    })
+
+        } else {
+            view.setOnTouchListener { v, event ->
+                if (!v.hasOnClickListeners()) {
+                    v.setOnClickListener { }
+                }
+                gestureDetecor.onTouchEvent(event)
             }
-            gestureDetecor.onTouchEvent(event)
         }
     }
 }
@@ -57,13 +69,24 @@ fun getLongPressObservable(view: View): Observable<MotionEvent> {
                 return super.onLongPress(e)
             }
         })
-        view.setOnTouchListener({ v, event ->
-            if (!v.hasOnClickListeners()) {
-                v.setOnClickListener { }
-            }
-            gestureDector.onTouchEvent(event)
+        if (view is RecyclerView) {
+            (view as RecyclerView)
+                    .addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
+                        override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean {
+                            gestureDector.onTouchEvent(e)
+                            return super.onInterceptTouchEvent(rv, e)
+                        }
+                    })
 
-        })
+        } else {
+            view.setOnTouchListener({ v, event ->
+                if (!v.hasOnClickListeners()) {
+                    v.setOnClickListener { }
+                }
+                gestureDector.onTouchEvent(event)
+
+            })
+        }
     }
 }
 

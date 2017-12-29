@@ -4,6 +4,7 @@ package com.garyjacobs.weathertest
 import Events.ForecastListSelectedEvent
 import Events.getFlingObervable
 import Events.getLongPressObservable
+import Events.getSingleTapObservable
 import android.os.Bundle
 import android.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -74,7 +75,7 @@ class WeatherListFragment : Fragment() {
                                 }
                             })
                     // hold off ... to many api calls
-                    //it.addTileOverlay(tileOverlayOptions)
+                    it.addTileOverlay(tileOverlayOptions)
                     googleMap.setOnMapClickListener {
                         if (weather_list.visibility == View.INVISIBLE)
                             doSlideAnimation(weather_list, false)
