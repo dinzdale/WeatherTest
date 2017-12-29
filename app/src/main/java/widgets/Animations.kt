@@ -13,20 +13,35 @@ import android.view.animation.TranslateAnimation
  * Created by garyjacobs on 12/28/17.
  */
 
-fun doSlideAnimation(view: View, slideOut : Boolean = true) {
+enum class SlideMotion(val translateAnimation: TranslateAnimation) {
+    SLIDEOUTUPLEFT(TranslateAnimation(
+            TranslateAnimation.RELATIVE_TO_SELF, 0.toFloat(),
+            TranslateAnimation.RELATIVE_TO_PARENT, -1.toFloat(),
+            TranslateAnimation.RELATIVE_TO_SELF, 0.toFloat(),
+            TranslateAnimation.RELATIVE_TO_SELF, -1.toFloat())),
+    SLIDEINDOWNRIGHT(TranslateAnimation(
+            TranslateAnimation.RELATIVE_TO_PARENT, -1.toFloat(),
+            TranslateAnimation.RELATIVE_TO_SELF, 0.toFloat(),
+            TranslateAnimation.RELATIVE_TO_PARENT, -1.toFloat(),
+            TranslateAnimation.RELATIVE_TO_SELF, 0.toFloat())),
+    SLIDEUPOUT(TranslateAnimation(
+            TranslateAnimation.RELATIVE_TO_SELF, 0.toFloat(),
+            TranslateAnimation.RELATIVE_TO_PARENT, 0.toFloat(),
+            TranslateAnimation.RELATIVE_TO_SELF, 0.toFloat(),
+            TranslateAnimation.RELATIVE_TO_PARENT, -1.toFloat())),
+    SLIDEDOWNIN(TranslateAnimation(
+            TranslateAnimation.RELATIVE_TO_PARENT, 0.toFloat(),
+            TranslateAnimation.RELATIVE_TO_SELF, 0.toFloat(),
+            TranslateAnimation.RELATIVE_TO_PARENT, -1.toFloat(),
+            TranslateAnimation.RELATIVE_TO_SELF, 0.toFloat()));
+
+}
+
+fun doSlideAnimation(view: View, motion: SlideMotion, endFunc: (() -> Unit)? = null) {
 
     val animationSet = AnimationSet(false);
 
-    val slideAnimation = if (slideOut) TranslateAnimation(
-            TranslateAnimation.RELATIVE_TO_SELF, 0.toFloat(),
-            TranslateAnimation.RELATIVE_TO_PARENT, -1.toFloat(),
-            TranslateAnimation.RELATIVE_TO_SELF, 0.toFloat(),
-            TranslateAnimation.RELATIVE_TO_SELF, -1.toFloat())
-    else TranslateAnimation(
-            TranslateAnimation.RELATIVE_TO_PARENT, -1.toFloat(),
-            TranslateAnimation.RELATIVE_TO_SELF, 0.toFloat(),
-            TranslateAnimation.RELATIVE_TO_PARENT, -1.toFloat(),
-            TranslateAnimation.RELATIVE_TO_SELF, 0.toFloat())
+    val slideAnimation = motion.translateAnimation
 
     slideAnimation.fillAfter = true
 
@@ -41,9 +56,11 @@ fun doSlideAnimation(view: View, slideOut : Boolean = true) {
     animationSet.setAnimationListener(object : Animation.AnimationListener {
         override fun onAnimationEnd(animation: Animation?) {
             Log.d("Animation", "Animation Ended")
-            if (slideOut) {
-                view.visibility = View.INVISIBLE
+            when (motion) {
+                SlideMotion.SLIDEOUTUPLEFT -> view.visibility = View.INVISIBLE
+                SlideMotion.SLIDEUPOUT -> view.visibility = View.GONE
             }
+            endFunc?.invoke()
         }
 
         override fun onAnimationRepeat(animation: Animation?) {
@@ -52,9 +69,11 @@ fun doSlideAnimation(view: View, slideOut : Boolean = true) {
 
         override fun onAnimationStart(animation: Animation?) {
             Log.d("Animation", "Animation Started")
-            if (!slideOut) {
-                view.visibility = View.VISIBLE
+            when (motion) {
+                SlideMotion.SLIDEINDOWNRIGHT -> view.visibility = View.VISIBLE
+                SlideMotion.SLIDEDOWNIN -> view.visibility = View.VISIBLE
             }
+
         }
     })
     view.startAnimation(animationSet)

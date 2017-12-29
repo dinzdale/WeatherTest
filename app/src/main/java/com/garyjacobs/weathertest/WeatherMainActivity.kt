@@ -18,6 +18,8 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.weather_panel_layout.view.*
 import model.formatAddress
 import widgets.ComboBox
+import widgets.SlideMotion
+import widgets.doSlideAnimation
 
 /**
  * Created by garyjacobs on 11/24/17.
@@ -178,27 +180,42 @@ class WeatherMainActivity : WeatherActivity() {
         val fragTM: FragmentTransaction = fragmentManager.beginTransaction()
         if (isTwoPane) {
             if (loadCurrentWeather) {
-                location_cb.visibility = View.VISIBLE
-                fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
-                        .commit()
+                if (location_cb.visibility != View.VISIBLE) {
+                    doSlideAnimation(location_cb, SlideMotion.SLIDEDOWNIN, {
+                        fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
+                                .commit()
+                    })
+                } else {
+                    fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
+                            .commit()
+                }
             } else {
-                location_cb.visibility = View.GONE
-                fragTM.replace(R.id.extended_weather_container, WeatherListFragment(), WeatherListFragment.TAG)
-                        .addToBackStack(WeatherListFragment.TAG)
-                        .commit()
+                //location_cb.visibility = View.GONE
+                doSlideAnimation(location_cb, SlideMotion.SLIDEUPOUT, {
+                    fragTM.replace(R.id.extended_weather_container, WeatherListFragment(), WeatherListFragment.TAG)
+                            .addToBackStack(WeatherListFragment.TAG)
+                            .commit()
+                })
             }
         } else {
             if (loadCurrentWeather) {
-                location_cb.visibility = View.VISIBLE
-                fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
-                        .commit()
+                if (location_cb.visibility != View.VISIBLE) {
+                    doSlideAnimation(location_cb, SlideMotion.SLIDEDOWNIN, {
+                        fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
+                                .commit()
+                    })
+                } else {
+                    fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
+                            .commit()
+                }
             } else {
-                location_cb.visibility = View.GONE
-                fragTM.replace(R.id.weather_container, WeatherListFragment(), WeatherListFragment.TAG)
-                        .addToBackStack(WeatherListFragment.TAG)
-                        .commit()
+                //location_cb.visibility = View.GONE
+                doSlideAnimation(location_cb, SlideMotion.SLIDEUPOUT, {
+                    fragTM.replace(R.id.weather_container, WeatherListFragment(), WeatherListFragment.TAG)
+                            .addToBackStack(WeatherListFragment.TAG)
+                            .commit()
+                })
             }
-
         }
     }
 
@@ -258,9 +275,9 @@ class WeatherMainActivity : WeatherActivity() {
         } ?: getErrorDialog()
         dialog.show()
     }
-    // get selections from list
-    //@Subscribe
-    //fun ForcastSelected(event: ForecastListSelectedEvent) = LoadForecastDetailsFragment(event.itemSelected)
+// get selections from list
+//@Subscribe
+//fun ForcastSelected(event: ForecastListSelectedEvent) = LoadForecastDetailsFragment(event.itemSelected)
 
     // load list
     @Subscribe

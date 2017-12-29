@@ -15,6 +15,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.current_weather.*
 import model.getWindDirection
+import widgets.SlideMotion
 import widgets.doSlideAnimation
 import widgets.getAlphaAnimator
 
@@ -68,8 +69,8 @@ class CurrentWeatherFragment : Fragment() {
                         it.addMarker(MarkerOptions()
                                 .position(latlon))
                         googleMap.setOnMapClickListener {
-                            if (cw_cardview.visibility == View.INVISIBLE)
-                                doSlideAnimation(cw_cardview, false)
+                            if (cw_cardview.visibility != View.VISIBLE)
+                                doSlideAnimation(cw_cardview,SlideMotion.SLIDEINDOWNRIGHT)
                         }
                     }
                 }
@@ -77,7 +78,7 @@ class CurrentWeatherFragment : Fragment() {
 
             getFlingObervable(cw_cardview)
                     .subscribe {
-                        doSlideAnimation(cw_cardview)
+                        doSlideAnimation(cw_cardview,SlideMotion.SLIDEOUTUPLEFT)
                     }
 
             getSingleTapObservable(extended_forcast)

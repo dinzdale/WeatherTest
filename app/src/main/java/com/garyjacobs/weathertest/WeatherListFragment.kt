@@ -25,6 +25,7 @@ import model.Forecast
 import kotlinx.android.synthetic.main.weather_list.*
 import kotlinx.android.synthetic.main.weather_list_item.view.*
 import model.getWindDirection
+import widgets.SlideMotion
 import widgets.doSlideAnimation
 import java.net.URL
 
@@ -77,8 +78,8 @@ class WeatherListFragment : Fragment() {
                     // hold off ... to many api calls
                     it.addTileOverlay(tileOverlayOptions)
                     googleMap.setOnMapClickListener {
-                        if (weather_list.visibility == View.INVISIBLE)
-                            doSlideAnimation(weather_list, false)
+                        if (weather_list.visibility != View.VISIBLE)
+                            doSlideAnimation(weather_list, SlideMotion.SLIDEINDOWNRIGHT)
                     }
                 }
             }
@@ -86,7 +87,7 @@ class WeatherListFragment : Fragment() {
 
         getLongPressObservable(weather_list)
                 .subscribe {
-                    doSlideAnimation(weather_list)
+                    doSlideAnimation(weather_list, SlideMotion.SLIDEOUTUPLEFT)
                 }
     }
 
