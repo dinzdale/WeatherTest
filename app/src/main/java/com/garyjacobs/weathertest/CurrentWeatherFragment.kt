@@ -5,8 +5,6 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.app.Fragment
 import android.os.Bundle
-import android.support.annotation.FloatRange
-import android.util.Range
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +15,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.current_weather.*
 import model.getWindDirection
+import widgets.doSlideAnimation
+import widgets.getAlphaAnimator
 
 /**
  * Created by garyjacobs on 12/18/17.
@@ -58,21 +58,26 @@ class CurrentWeatherFragment : Fragment() {
 
             // setup up map in background
             current_weather_map.onCreate(savedInstanceState)
+
             current_weather_map.getMapAsync(object : OnMapReadyCallback {
 
-                override fun onMapReady(googleMapApi: GoogleMap?) {
-                    googleMapApi?.let {
+                override fun onMapReady(googleMap: GoogleMap?) {
+                    googleMap?.let {
                         val latlon = LatLng(myActivity.weatherApplication.location.latitude, myActivity.weatherApplication.location.longitude)
                         it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 10.toFloat()))
                         it.addMarker(MarkerOptions()
                                 .position(latlon))
+                        googleMap.setOnMapClickListener {
+                            if (cw_cardview.visibility == View.INVISIBLE)
+                                doSlideAnimation(cw_cardview, false)
+                        }
                     }
                 }
             })
 
             getFlingObervable(cw_cardview)
                     .subscribe {
-                        myLog("Fling it Event", it.event1!!, it.event2)
+                        doSlideAnimation(cw_cardview)
                     }
 
             getSingleTapObservable(extended_forcast)
@@ -80,7 +85,8 @@ class CurrentWeatherFragment : Fragment() {
                         myActivity.weatherApplication.bus.post(CurrentWeatherSelectedEvent())
                     }
 
-            extendForecastAnimation = doAlphaAnimation(extended_forcast)
+            extendForecastAnimation = getAlphaAnimator(extended_forcast)
+
         }
     }
 
@@ -129,12 +135,5 @@ class CurrentWeatherFragment : Fragment() {
         }
     }
 
-    fun doAlphaAnimation(view: View): ObjectAnimator {
-        val animator = ObjectAnimator.ofFloat(view, "alpha", 0.toFloat(), 1.toFloat())
-        animator.repeatCount = ValueAnimator.INFINITE
-        animator.repeatMode = ValueAnimator.REVERSE
-        animator.duration = 3000
-        return animator
 
-    }
 }

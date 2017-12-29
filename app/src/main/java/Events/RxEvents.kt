@@ -25,7 +25,7 @@ fun getFlingObervable(view: View): Observable<FlingEvent> {
 
         view.setOnTouchListener { v, event ->
             if (!v.hasOnClickListeners()) {
-                v.setOnClickListener {  }
+                v.setOnClickListener { }
             }
             gestureDector.onTouchEvent(event)
         }
@@ -40,10 +40,9 @@ fun getSingleTapObservable(view: View): Observable<MotionEvent> {
                 return super.onSingleTapConfirmed(e)
             }
         })
-
         view.setOnTouchListener { v, event ->
             if (!v.hasOnClickListeners()) {
-                v.setOnClickListener {  }
+                v.setOnClickListener { }
             }
             gestureDetecor.onTouchEvent(event)
         }
@@ -58,9 +57,13 @@ fun getLongPressObservable(view: View): Observable<MotionEvent> {
                 return super.onLongPress(e)
             }
         })
-        view.setOnTouchListener { v, event ->
+        view.setOnTouchListener({ v, event ->
+            if (!v.hasOnClickListeners()) {
+                v.setOnClickListener { }
+            }
             gestureDector.onTouchEvent(event)
-        }
+
+        })
     }
 }
 
