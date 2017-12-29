@@ -70,7 +70,8 @@ class CurrentWeatherFragment : Fragment() {
                                 .position(latlon))
                         googleMap.setOnMapClickListener {
                             if (cw_cardview.visibility != View.VISIBLE)
-                                doSlideAnimation(cw_cardview,SlideMotion.SLIDEINDOWNRIGHT)
+                                doSlideAnimation(cw_cardview, SlideMotion.SLIDEINDOWNRIGHT)
+                            myActivity.weatherApplication.bus.post(MapClickedEvent())
                         }
                     }
                 }
@@ -78,7 +79,7 @@ class CurrentWeatherFragment : Fragment() {
 
             getFlingObervable(cw_cardview)
                     .subscribe {
-                        doSlideAnimation(cw_cardview,SlideMotion.SLIDEOUTUPLEFT)
+                        doSlideAnimation(cw_cardview, SlideMotion.SLIDEOUTUPLEFT)
                     }
 
             getSingleTapObservable(extended_forcast)

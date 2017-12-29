@@ -1,6 +1,8 @@
 package com.garyjacobs.weathertest
 
 import Events.CurrentWeatherSelectedEvent
+import Events.MapClickedEvent
+import Events.getFlingObervable
 import android.Manifest
 import android.app.AlertDialog
 import android.app.Fragment
@@ -37,6 +39,10 @@ class WeatherMainActivity : WeatherActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         location_cb.setOnClickListener(locationClickListener)
+        getFlingObervable(location_cb)
+                .subscribe {
+                    doSlideAnimation(location_cb,SlideMotion.SLIDEOUTUPLEFT)
+                }
         val view = layoutInflater.inflate(R.layout.weather_panel_layout, null)
         main_frame_layout.addView(view)
         isTwoPane = view.extended_weather_container != null
@@ -275,9 +281,6 @@ class WeatherMainActivity : WeatherActivity() {
         } ?: getErrorDialog()
         dialog.show()
     }
-// get selections from list
-//@Subscribe
-//fun ForcastSelected(event: ForecastListSelectedEvent) = LoadForecastDetailsFragment(event.itemSelected)
 
     // load list
     @Subscribe
@@ -285,5 +288,11 @@ class WeatherMainActivity : WeatherActivity() {
         loadCurrentWeather = false
         pleaseWaitDialog.show()
         location_cb.callOnClick()
+    }
+    @Subscribe
+    fun MapClicked(event: MapClickedEvent) {
+        if (location_cb.visibility != View.VISIBLE) {
+            doSlideAnimation(location_cb,SlideMotion.SLIDEINDOWNRIGHT)
+        }
     }
 }
