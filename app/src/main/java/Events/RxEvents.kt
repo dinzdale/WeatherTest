@@ -11,6 +11,11 @@ import io.reactivex.*
 /**
  * Created by garyjacobs on 12/28/17.
  */
+enum class UserMotionEvent() {
+    FLINGEVENT, SINGLETAP, LONGPRESS;
+}
+
+data class UserMotionData(val userMotionEvent: UserMotionEvent, val event1: MotionEvent? = null, val event2: MotionEvent? = null)
 
 fun getFlingObervable(view: View): Observable<FlingEvent> {
 
@@ -86,6 +91,34 @@ fun getLongPressObservable(view: View): Observable<MotionEvent> {
                 gestureDector.onTouchEvent(event)
 
             })
+        }
+    }
+}
+
+fun getUserMotionEventObservable(view: View): Observable<UserMotionData> {
+    return Observable.create<UserMotionData> { emitter ->
+        val gestureDetector = GestureDetector(view.context, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onFling(e1: MotionEvent?, e2: MotionEvent?, velocityX: Float, velocityY: Float): Boolean {
+                emitter.onNext(UserMotionData(UserMotionEvent.FLINGEVENT, e1, e2))
+                return super.onFling(e1, e2, velocityX, velocityY)
+            }
+
+            override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+                emitter.onNext(UserMotionData(UserMotionEvent.SINGLETAP, e))
+                return super.onSingleTapConfirmed(e)
+            }
+
+            override fun onLongPress(e: MotionEvent?) {
+                emitter.onNext(UserMotionData(UserMotionEvent.LONGPRESS, e))
+                super.onLongPress(e)
+            }
+        })
+
+        if (!view.hasOnClickListeners()) {
+            view.setOnClickListener { }
+        }
+        view.setOnTouchListener { v, event ->
+            gestureDetector.onTouchEvent(event)
         }
     }
 }

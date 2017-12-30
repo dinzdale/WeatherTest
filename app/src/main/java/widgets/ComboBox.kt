@@ -1,23 +1,24 @@
 package widgets
 
+import Events.*
 import android.content.Context
-import android.graphics.Rect
 import android.location.Address
 import android.support.v7.widget.AppCompatAutoCompleteTextView
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.View
-import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.TextView
+import io.reactivex.Observable
 import model.formatAddress
 
 
 class ComboBox : AppCompatAutoCompleteTextView {
 
-    var listener: View.OnClickListener? = null
+    private var listener: View.OnClickListener? = null
+    var UserFlingAction: ((UserMotionData) -> Unit)? = null
+    var UserSingleTapAction: ((UserMotionData) -> Unit)? = null
 
     constructor(context: Context?) : super(context)
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
@@ -64,7 +65,26 @@ class ComboBox : AppCompatAutoCompleteTextView {
 
         setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, arrayOf()))
 
+        getUserMotionEventObservable(this)
+                .filter { it.userMotionEvent == UserMotionEvent.FLINGEVENT || it.userMotionEvent == UserMotionEvent.SINGLETAP }
+                .subscribe { userMotionData ->
+                    when (userMotionData.userMotionEvent) {
+                        UserMotionEvent.SINGLETAP -> {
+                            val DRAWABLE_LEFT = 0;
+                            val DRAWABLE_TOP = 1;
+                            val DRAWABLE_RIGHT = 2;
+                            val DRAWABLE_BOTTOM = 3;
+                            userMotionData.event1?.let {
+                                if (it.getRawX() >= (getRight() - getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
+                                    text.clear()
+                                }
+                                UserSingleTapAction?.invoke(userMotionData)
+                            }
 
+                        }
+                        UserMotionEvent.FLINGEVENT -> UserFlingAction?.invoke(userMotionData)
+                    }
+                }
     }
 
     override fun callOnClick(): Boolean {
@@ -88,9 +108,9 @@ class ComboBox : AppCompatAutoCompleteTextView {
     }
 
 
-    private fun dismissKeyboard() {
+    private fun dismissKeyboard(hide_flag: Int = InputMethodManager.RESULT_UNCHANGED_SHOWN) {
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(windowToken, 0)
+        imm.hideSoftInputFromWindow(windowToken, hide_flag)
     }
 
     private fun showKeyboard() {
@@ -101,6 +121,5 @@ class ComboBox : AppCompatAutoCompleteTextView {
     fun getCurrentText(): String? {
         return text.toString()
     }
-
 
 }

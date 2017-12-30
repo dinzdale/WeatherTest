@@ -1,8 +1,6 @@
 package com.garyjacobs.weathertest
 
-import Events.CurrentWeatherSelectedEvent
-import Events.MapClickedEvent
-import Events.getFlingObervable
+import Events.*
 import android.Manifest
 import android.app.AlertDialog
 import android.app.Fragment
@@ -39,10 +37,9 @@ class WeatherMainActivity : WeatherActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         location_cb.setOnClickListener(locationClickListener)
-        getFlingObervable(location_cb)
-                .subscribe {
-                    doSlideAnimation(location_cb,SlideMotion.SLIDEOUTUPLEFT)
-                }
+        location_cb.UserFlingAction = {
+            doSlideAnimation(location_cb, SlideMotion.SLIDEOUTUPLEFT)
+        }
         val view = layoutInflater.inflate(R.layout.weather_panel_layout, null)
         main_frame_layout.addView(view)
         isTwoPane = view.extended_weather_container != null
@@ -124,7 +121,7 @@ class WeatherMainActivity : WeatherActivity() {
                     }
                     LocaterService.REQUESTEDCURRENTLOCATION -> {
                         pleaseWaitDialog.hide()
-                        location_cb.visibility = View.VISIBLE
+                        //location_cb.visibility = View.VISIBLE
                         if (message.data.getBoolean("STATUS")) {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             supportActionBar?.title = addresses[0].formatAddress()
@@ -135,7 +132,7 @@ class WeatherMainActivity : WeatherActivity() {
                     }
                     LocaterService.REQUESTEDLOCATION -> {
                         pleaseWaitDialog.hide()
-                        location_cb.visibility = View.VISIBLE
+                        //location_cb.visibility = View.VISIBLE
                         if (message.data.getBoolean("STATUS")) {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             if (addresses.size == 1) {
@@ -150,7 +147,7 @@ class WeatherMainActivity : WeatherActivity() {
                     }
                     LocaterService.REQUESTEDCURRENTWEATHERCURRENTLOCATION -> {
                         pleaseWaitDialog.hide()
-                        location_cb.visibility = View.VISIBLE
+                        //location_cb.visibility = View.VISIBLE
                         if (message.data.getBoolean("STATUS")) {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             supportActionBar?.title = addresses[0].formatAddress()
@@ -161,7 +158,7 @@ class WeatherMainActivity : WeatherActivity() {
                     }
                     LocaterService.REQUESTEDCURRENTWEATHERWITHLOCATION -> {
                         pleaseWaitDialog.hide()
-                        location_cb.visibility = View.VISIBLE
+                        //location_cb.visibility = View.VISIBLE
                         if (message.data.getBoolean("STATUS")) {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             if (addresses.size == 1) {
@@ -186,8 +183,8 @@ class WeatherMainActivity : WeatherActivity() {
         val fragTM: FragmentTransaction = fragmentManager.beginTransaction()
         if (isTwoPane) {
             if (loadCurrentWeather) {
-                if (location_cb.visibility != View.VISIBLE) {
-                    doSlideAnimation(location_cb, SlideMotion.SLIDEDOWNIN, {
+                if (main_frame_layout.visibility != View.VISIBLE) {
+                    doSlideAnimation(main_frame_layout, SlideMotion.SLIDEDOWNIN, {
                         fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
                                 .commit()
                     })
@@ -205,7 +202,7 @@ class WeatherMainActivity : WeatherActivity() {
             }
         } else {
             if (loadCurrentWeather) {
-                if (location_cb.visibility != View.VISIBLE) {
+                if (main_frame_layout.visibility != View.VISIBLE) {
                     doSlideAnimation(location_cb, SlideMotion.SLIDEDOWNIN, {
                         fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
                                 .commit()
@@ -252,7 +249,7 @@ class WeatherMainActivity : WeatherActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
-        location_cb.visibility = View.VISIBLE
+        //location_cb.visibility = View.VISIBLE
         loadCurrentWeather = true
     }
 
@@ -289,10 +286,11 @@ class WeatherMainActivity : WeatherActivity() {
         pleaseWaitDialog.show()
         location_cb.callOnClick()
     }
+
     @Subscribe
     fun MapClicked(event: MapClickedEvent) {
         if (location_cb.visibility != View.VISIBLE) {
-            doSlideAnimation(location_cb,SlideMotion.SLIDEINDOWNRIGHT)
+            doSlideAnimation(location_cb, SlideMotion.SLIDEINDOWNRIGHT)
         }
     }
 }
