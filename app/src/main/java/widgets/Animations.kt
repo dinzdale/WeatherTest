@@ -57,7 +57,7 @@ fun doSlideAnimation(view: View, motion: SlideMotion, endFunc: (() -> Unit)? = n
         override fun onAnimationEnd(animation: Animation?) {
             Log.d("Animation", "Animation Ended")
             when (motion) {
-                SlideMotion.SLIDEOUTUPLEFT -> view.visibility = View.INVISIBLE
+                SlideMotion.SLIDEOUTUPLEFT -> view.visibility = View.GONE
                 SlideMotion.SLIDEUPOUT -> view.visibility = View.GONE
             }
             endFunc?.invoke()
