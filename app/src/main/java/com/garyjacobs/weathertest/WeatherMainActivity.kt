@@ -183,8 +183,8 @@ class WeatherMainActivity : WeatherActivity() {
         val fragTM: FragmentTransaction = fragmentManager.beginTransaction()
         if (isTwoPane) {
             if (loadCurrentWeather) {
-                if (main_frame_layout.visibility != View.VISIBLE) {
-                    doSlideAnimation(main_frame_layout, SlideMotion.SLIDEDOWNIN, {
+                if (location_cb.visibility != View.VISIBLE) {
+                    doSlideAnimation(location_cb, SlideMotion.SLIDEDOWNIN, {
                         fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
                                 .commit()
                     })
@@ -202,7 +202,7 @@ class WeatherMainActivity : WeatherActivity() {
             }
         } else {
             if (loadCurrentWeather) {
-                if (main_frame_layout.visibility != View.VISIBLE) {
+                if (location_cb.visibility != View.VISIBLE) {
                     doSlideAnimation(location_cb, SlideMotion.SLIDEDOWNIN, {
                         fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
                                 .commit()
@@ -249,7 +249,9 @@ class WeatherMainActivity : WeatherActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
-        //location_cb.visibility = View.VISIBLE
+        if (location_cb.visibility != View.VISIBLE) {
+            doSlideAnimation(location_cb,SlideMotion.SLIDEDOWNIN)
+        }
         loadCurrentWeather = true
     }
 
