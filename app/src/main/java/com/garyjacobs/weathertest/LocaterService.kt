@@ -1,12 +1,15 @@
 package com.garyjacobs.weathertest
 
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import android.os.*
 import android.widget.Toast
 import com.google.android.gms.common.ConnectionResult
@@ -48,6 +51,7 @@ class LocaterService : Service() {
 
     companion object {
         val NOINTERENT = -1
+        val LOSTWIFI = -2
         val CONNECTING = 1
         val REQUESTCURRENTLOCATION = 3
         val REQUESTEDCURRENTLOCATION = -3
@@ -71,6 +75,8 @@ class LocaterService : Service() {
         super.onCreate()
         application = getApplication() as WeatherTestApplication
         initLocationServices()
+
+
     }
 
     private val inBoundMessenger = Messenger(InboundHandler())
@@ -79,9 +85,11 @@ class LocaterService : Service() {
         override fun handleMessage(incomingMessage: Message?) {
             incomingMessage?.let {
                 outboundmessenger = it.replyTo
+                this@LocaterService.applicationContext.registerReceiver(broadcastReceiver, IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION))
                 if (isNetworkedConnected()) {
                     if (apiConnected) {
                         when (incomingMessage.what) {
+                            LOSTWIFI -> outboundmessenger.sendMessage(NOINTERENT)
                             REQUESTCURRENTLOCATION -> fusedLocationProviderClient.lastLocation.addOnSuccessListener {
                                 it.getReverseGeocodeLocation()
                                         ?.subscribe { addresses, throwable ->
@@ -128,7 +136,7 @@ class LocaterService : Service() {
                                                                     currentWeather?.let {
                                                                         val bundle = Bundle()
                                                                         bundle.putParcelableArray("LOCATION", addresses)
-                                                                        outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION, bundle)
+                                                                        outboundmessenger?.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION, bundle)
                                                                     } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
                                                                 }
                                                     } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
@@ -174,7 +182,10 @@ class LocaterService : Service() {
 
     override fun onBind(intent: Intent?) = inBoundMessenger.binder
 
-    override fun onUnbind(intent: Intent?) = false
+    override fun onUnbind(intent: Intent?): Boolean {
+        this.applicationContext.unregisterReceiver(broadcastReceiver)
+        return super.onUnbind(intent)
+    }
 
 
     private fun initLocationServices() {
@@ -301,5 +312,16 @@ class LocaterService : Service() {
     private fun isNetworkedConnected(): Boolean {
         val connMgr = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         return connMgr.activeNetworkInfo?.isConnected ?: false
+    }
+
+    val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent?.let {
+                if (it.action == WifiManager.WIFI_STATE_CHANGED_ACTION) {
+                    val connMgr = context!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    connMgr?.activeNetworkInfo?.let {} ?: outboundmessenger.sendMessage(NOINTERENT)
+                }
+            }
+        }
     }
 }
