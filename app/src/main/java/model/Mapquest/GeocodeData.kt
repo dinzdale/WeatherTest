@@ -1,6 +1,7 @@
 package model.Mapquest
 
 import android.location.Address
+import model.formattedDouble
 import java.util.*
 
 /**
@@ -19,8 +20,8 @@ data class GeocodeData(val void: Unit) {
             { index ->
                 val nxtAddress = Address(Locale.getDefault())
                 val location = results[0].locations[index]
-                nxtAddress.latitude = location.latLng.lat.toDouble()
-                nxtAddress.longitude = location.latLng.lng.toDouble()
+                nxtAddress.latitude = location.latLng.lat.formattedDouble()
+                nxtAddress.longitude = location.latLng.lng.formattedDouble()
                 nxtAddress.postalCode = location.postalCode
                 nxtAddress.countryName = location.adminArea1
                 nxtAddress.url = location.mapUrl

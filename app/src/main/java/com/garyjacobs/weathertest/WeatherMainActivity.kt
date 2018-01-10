@@ -6,16 +6,21 @@ import android.app.AlertDialog
 import android.app.Fragment
 import android.app.FragmentTransaction
 import android.app.ProgressDialog
+import android.arch.persistence.room.Room
 import android.content.*
 import android.content.pm.PackageManager
 import android.location.Address
 import android.os.*
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.util.Log
 import android.view.View
+import android.widget.Toast
 import com.squareup.otto.Subscribe
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.weather_panel_layout.view.*
+import model.ArchComps.WeatherDB
+import model.CurrentWeather
 import model.formatAddress
 import widgets.ComboBox
 import widgets.SlideMotion
@@ -25,6 +30,7 @@ import widgets.doSlideAnimation
  * Created by garyjacobs on 11/24/17.
  */
 class WeatherMainActivity : WeatherActivity() {
+    private val TAG = WeatherMainActivity::class.java.simpleName
     private val inboundMessenger = Messenger(InboundHandler())
     private lateinit var outboundMessenger: Messenger
     private var locaterServiceBound = false
@@ -32,9 +38,15 @@ class WeatherMainActivity : WeatherActivity() {
     private var isTwoPane = false
     private lateinit var pleaseWaitDialog: ProgressDialog
     private lateinit var networkWarning: AlertDialog
+    private var currentLat: Double = 0.0
+    private var currentLon: Double = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        savedInstanceState?.let {
+            currentLat = savedInstanceState.getDouble("lat")
+            currentLon = savedInstanceState.getDouble("lon")
+        }
         setContentView(R.layout.activity_main)
         location_cb.setOnClickListener(locationClickListener)
         location_cb.UserFlingAction = {
@@ -52,6 +64,7 @@ class WeatherMainActivity : WeatherActivity() {
                 outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION)
             }
         })
+
     }
 
     val serviceConnection = object : ServiceConnection {
@@ -62,7 +75,10 @@ class WeatherMainActivity : WeatherActivity() {
 
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             outboundMessenger = Messenger(service)
-            outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION)
+            val bundle = Bundle()
+            bundle.putDouble("lat",currentLat)
+            bundle.putDouble("lon",currentLon)
+            outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION,bundle)
             locaterServiceBound = true
         }
     }
@@ -103,7 +119,6 @@ class WeatherMainActivity : WeatherActivity() {
 
     override fun onStop() {
         super.onStop()
-        val intent = Intent(this, LocaterService::class.java)
         unbindService(serviceConnection)
     }
 
@@ -149,9 +164,11 @@ class WeatherMainActivity : WeatherActivity() {
                         pleaseWaitDialog.hide()
                         //location_cb.visibility = View.VISIBLE
                         if (message.data.getBoolean("STATUS")) {
-                            val addresses = message.data.get("LOCATION") as Array<Address>
-                            supportActionBar?.title = addresses[0].formatAddress()
-                            loadAllFragments()
+                            //val addresses = message.data.get("LOCATION") as Array<Address>
+                            //supportActionBar?.title = addresses[0].formatAddress()
+                            currentLat = message.data.getDouble("lat")
+                            currentLon = message.data.getDouble("lon")
+                            loadAllFragments(currentLat, currentLon)
                         } else {
                             showErrorDialog(message.data.getString("ERROR"))
                         }
@@ -163,7 +180,9 @@ class WeatherMainActivity : WeatherActivity() {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             if (addresses.size == 1) {
                                 supportActionBar?.title = addresses[0].formatAddress()
-                                loadAllFragments()
+                                currentLat = addresses[0].latitude
+                                currentLon = addresses[0].longitude
+                                loadAllFragments(currentLat, currentLon)
                             } else {
                                 location_cb.updateComboBoxSelections(addresses)
                             }
@@ -179,17 +198,23 @@ class WeatherMainActivity : WeatherActivity() {
         }
     }
 
-    private fun loadAllFragments() {
-        val fragTM: FragmentTransaction = fragmentManager.beginTransaction()
+    override fun onSaveInstanceState(outState: Bundle?) {
+        outState?.putDouble("lat", currentLat)
+        outState?.putDouble("lon", currentLon)
+        super.onSaveInstanceState(outState)
+    }
+
+    private fun loadAllFragments(lat: Double = 0.0, lon: Double = 0.0) {
+        val fragTM = supportFragmentManager.beginTransaction()
         if (isTwoPane) {
             if (loadCurrentWeather) {
                 if (location_cb.visibility != View.VISIBLE) {
                     doSlideAnimation(location_cb, SlideMotion.SLIDEDOWNIN, {
-                        fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
+                        fragTM.replace(R.id.weather_container, CurrentWeatherFragment.getInstance(lat, lon), CurrentWeatherFragment.TAG)
                                 .commit()
                     })
                 } else {
-                    fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
+                    fragTM.replace(R.id.weather_container, CurrentWeatherFragment.getInstance(lat, lon), CurrentWeatherFragment.TAG)
                             .commit()
                 }
             } else {
@@ -204,11 +229,11 @@ class WeatherMainActivity : WeatherActivity() {
             if (loadCurrentWeather) {
                 if (location_cb.visibility != View.VISIBLE) {
                     doSlideAnimation(location_cb, SlideMotion.SLIDEDOWNIN, {
-                        fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
+                        fragTM.replace(R.id.weather_container, CurrentWeatherFragment.getInstance(lat, lon), CurrentWeatherFragment.TAG)
                                 .commit()
                     })
                 } else {
-                    fragTM.replace(R.id.weather_container, CurrentWeatherFragment(), CurrentWeatherFragment.TAG)
+                    fragTM.replace(R.id.weather_container, CurrentWeatherFragment.getInstance(lat, lon), CurrentWeatherFragment.TAG)
                             .commit()
                 }
             } else {
@@ -250,7 +275,7 @@ class WeatherMainActivity : WeatherActivity() {
     override fun onBackPressed() {
         super.onBackPressed()
         if (location_cb.visibility != View.VISIBLE) {
-            doSlideAnimation(location_cb,SlideMotion.SLIDEDOWNIN)
+            doSlideAnimation(location_cb, SlideMotion.SLIDEDOWNIN)
         }
         loadCurrentWeather = true
     }

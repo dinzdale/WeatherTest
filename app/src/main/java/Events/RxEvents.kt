@@ -1,12 +1,21 @@
 package Events
 
+import android.content.Context
 import android.support.v4.view.GestureDetectorCompat
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import com.garyjacobs.weathertest.R
 import io.reactivex.*
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
+import model.CurrentWeather
+import network.GetForecastData
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 
 /**
  * Created by garyjacobs on 12/28/17.
@@ -47,13 +56,12 @@ fun getSingleTapObservable(view: View): Observable<MotionEvent> {
             }
         })
         if (view is RecyclerView) {
-            (view as RecyclerView)
-                    .addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
-                        override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean {
-                            gestureDetecor.onTouchEvent(e)
-                            return super.onInterceptTouchEvent(rv, e)
-                        }
-                    })
+            view.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
+                override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean {
+                    gestureDetecor.onTouchEvent(e)
+                    return super.onInterceptTouchEvent(rv, e)
+                }
+            })
 
         } else {
             view.setOnTouchListener { v, event ->
@@ -75,13 +83,12 @@ fun getLongPressObservable(view: View): Observable<MotionEvent> {
             }
         })
         if (view is RecyclerView) {
-            (view as RecyclerView)
-                    .addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
-                        override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean {
-                            gestureDector.onTouchEvent(e)
-                            return super.onInterceptTouchEvent(rv, e)
-                        }
-                    })
+            view.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
+                override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean {
+                    gestureDector.onTouchEvent(e)
+                    return super.onInterceptTouchEvent(rv, e)
+                }
+            })
 
         } else {
             view.setOnTouchListener({ v, event ->
@@ -117,7 +124,7 @@ fun getUserMotionEventObservable(view: View): Observable<UserMotionData> {
         if (!view.hasOnClickListeners()) {
             view.setOnClickListener { }
         }
-        view.setOnTouchListener { v, event ->
+        view.setOnTouchListener { _, event ->
             gestureDetector.onTouchEvent(event)
         }
     }
@@ -130,4 +137,17 @@ fun myLog(func: String, e1: MotionEvent, e2: MotionEvent? = null) {
     sb.append("$func: ").append(" e1:${e1.toString()}")
     e2?.let { sb.append(" e2:${it.toString()}") }
     Log.d("RxEvents", sb.toString())
+}
+
+fun getCurrentWeather(context: Context, latitude: Float, longitude: Float): Single<CurrentWeather> {
+    return Retrofit.Builder()
+            .baseUrl(context.resources.getString(R.string.openweathermap_base_url))
+            .addConverterFactory(GsonConverterFactory.create())
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .build()
+            .create(GetForecastData::class.java)
+            .getCurrrentWeatherByCoords(latitude, longitude, context.resources.getString(R.string.openweathermap_appid))
+            .subscribeOn(Schedulers.newThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .singleOrError()
 }

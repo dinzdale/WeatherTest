@@ -40,4 +40,12 @@ fun Address.formatAddress(): String {
 
 }
 
+fun Double.formattedDouble(precision: Int = 4): Double {
+    return "%.${precision}f".format(this).toDouble()
+}
+
+fun Float.formattedDouble(precision: Int = 4): Double {
+    return this.toDouble().formattedDouble(precision)
+}
+
 
