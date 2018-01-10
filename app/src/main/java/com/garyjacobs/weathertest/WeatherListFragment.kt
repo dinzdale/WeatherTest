@@ -4,9 +4,8 @@ package com.garyjacobs.weathertest
 import Events.ForecastListSelectedEvent
 import Events.getFlingObervable
 import Events.getLongPressObservable
-import Events.getSingleTapObservable
 import android.os.Bundle
-import android.app.Fragment
+import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
@@ -48,11 +47,11 @@ class WeatherListFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        return inflater!!.inflate(R.layout.weather_list, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+       return inflater!!.inflate(R.layout.weather_list, container, false)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         myActivity = activity as WeatherActivity
         weather_list!!.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
@@ -137,7 +136,7 @@ class WeatherListFragment : Fragment() {
 
     }
 
-    private fun onItemClick(position: Int) = myActivity!!.weatherApplication.bus.post(ForecastListSelectedEvent(position))
+    private fun onItemClick(position: Int) = myActivity.weatherApplication.bus.post(ForecastListSelectedEvent(position))
 
 
     private inner class MyRecyclerViewAdapter(internal var forecast: Forecast, internal var onClickListener: View.OnClickListener) : RecyclerView.Adapter<MyViewHolder>() {

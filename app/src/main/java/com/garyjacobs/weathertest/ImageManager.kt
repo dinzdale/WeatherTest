@@ -84,7 +84,7 @@ class ImageManager(maxSize: Int) {
         override fun onSuccess(pair: Pair<String, Bitmap?>) {
             log("BitMapObserver::onSuccess")
             pair.second?.let {
-                log("BitMapObserver::onSuccess New dimensions: ${pair!!.second!!.width} x ${pair!!.second!!.height}")
+                ("BitMapObserver::onSuccess New dimensions: ${pair.second!!.width} x ${pair.second!!.height}")
                 memoryCache.put(pair.first, pair.second)
                 image.setImageDrawable(BitmapDrawable(image.context.resources,pair.second))
             }

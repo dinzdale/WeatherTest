@@ -1,6 +1,8 @@
 package com.garyjacobs.weathertest
 
 import android.app.Service
+import android.arch.lifecycle.ViewModelProviders
+import android.arch.persistence.room.Room
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -27,9 +29,11 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
+import model.ArchComps.WeatherDB
 import model.CurrentWeather
 import model.Forecast
 import model.Mapquest.GeocodeData
+import model.formattedDouble
 import network.GetForecastData
 import network.GetGeocodeInfo
 import retrofit2.Call
@@ -70,12 +74,13 @@ class LocaterService : Service() {
     private var isBound = false
     private var apiConnected = true
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var weatherDB: WeatherDB
 
     override fun onCreate() {
         super.onCreate()
         application = getApplication() as WeatherTestApplication
         initLocationServices()
-
+        weatherDB = WeatherDB.getInstance(this)!!
 
     }
 
@@ -84,6 +89,9 @@ class LocaterService : Service() {
     inner class InboundHandler : Handler() {
         override fun handleMessage(incomingMessage: Message?) {
             incomingMessage?.let {
+                val lat = incomingMessage.data.getDouble("lat")
+                val lon = incomingMessage.data.getDouble("lon")
+                val networkCall = lat + lon == 0.0
                 outboundmessenger = it.replyTo
                 this@LocaterService.applicationContext.registerReceiver(broadcastReceiver, IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION))
                 if (isNetworkedConnected()) {
@@ -95,7 +103,7 @@ class LocaterService : Service() {
                                         ?.subscribe { addresses, throwable ->
                                             addresses?.let {
                                                 getForecast(addresses[0].latitude, addresses[0].longitude)
-                                                        ?.subscribe { forecast, throwable ->
+                                                        .subscribe { forecast, throwable ->
                                                             forecast?.let {
                                                                 val bundle = Bundle()
                                                                 bundle.putParcelableArray("LOCATION", addresses)
@@ -125,24 +133,35 @@ class LocaterService : Service() {
                                         }
                             }
 
-                            REQUESTCURRENTWEATHERCURRENTLOCATION -> fusedLocationProviderClient
-                                    .lastLocation
-                                    .addOnSuccessListener {
-                                        it.getReverseGeocodeLocation()
-                                                ?.subscribe { addresses, throwable ->
-                                                    addresses?.let {
-                                                        getCurrentWeather(addresses[0].latitude.toFloat(), addresses[0].longitude.toFloat())
-                                                                .subscribe { currentWeather, throwable ->
-                                                                    currentWeather?.let {
-                                                                        val bundle = Bundle()
-                                                                        bundle.putParcelableArray("LOCATION", addresses)
-                                                                        outboundmessenger?.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION, bundle)
-                                                                    } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
-                                                                }
-                                                    } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
-                                                }
-                                    }
+                            REQUESTCURRENTWEATHERCURRENTLOCATION -> {
+                                if (networkCall) {
+                                    fusedLocationProviderClient
+                                            .lastLocation
+                                            .addOnSuccessListener {
+                                                it.getReverseGeocodeLocation()
+                                                        ?.subscribe { addresses, throwable ->
+                                                            addresses?.let {
+                                                                getCurrentWeather(addresses[0].latitude.toFloat(), addresses[0].longitude.toFloat())
+                                                                        .subscribe { currentWeather, throwable ->
+                                                                            currentWeather?.let {
+                                                                                // test db
+                                                                                //weatherDB.weatherDao().insertCurrentWeather(it)
+                                                                                val bundle = Bundle()
+                                                                                bundle.putDouble("lat",currentWeather.coord.lat.formattedDouble())
+                                                                                bundle.putDouble("lon",currentWeather.coord.lon.formattedDouble())
+                                                                                outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION, bundle)
 
+                                                                            } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
+                                                                        }
+                                                            } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
+                                                        }
+                                            }
+                                }
+                                else {
+                                    // should be in database already
+                                    outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION,incomingMessage.data)
+                                }
+                            }
                             REQUESTCURRENTWEATHERWITHLOCATION -> incomingMessage.data.getString("LOCATION")?.let {
                                 getGeocodeLocation(it)
                                         ?.subscribe { addresses, throwable ->
@@ -151,9 +170,9 @@ class LocaterService : Service() {
                                                 bundle.putParcelableArray("LOCATION", addresses)
                                                 if (addresses.size == 1) {
                                                     getCurrentWeather(addresses[0].latitude.toFloat(), addresses[0].longitude.toFloat())
-                                                            .subscribe { currentWeather, throwable ->
-                                                                application.location = addresses[0]
-                                                                application.currentWeather = currentWeather
+                                                            .subscribe { currentWeather, _ ->
+                                                                //application.location = addresses[0]
+                                                                //application.currentWeather = currentWeather
                                                                 outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERWITHLOCATION, bundle)
                                                             }
 
@@ -244,7 +263,7 @@ class LocaterService : Service() {
                 .singleOrError()
     }
 
-    private fun getCurrentWeather(latitude: Float, longitude: Float): Single<CurrentWeather> {
+    fun getCurrentWeather(latitude: Float, longitude: Float): Single<CurrentWeather> {
         val res = application.resources
         return Retrofit.Builder()
                 .baseUrl(res.getString(R.string.openweathermap_base_url))
@@ -253,11 +272,11 @@ class LocaterService : Service() {
                 .build()
                 .create(GetForecastData::class.java)
                 .getCurrrentWeatherByCoords(latitude, longitude, res.getString(R.string.openweathermap_appid))
-                .subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
+                //.doOnNext { application.currentWeather = it }
+                .doOnNext { weatherDB.weatherDao().insertCurrentWeather(it) }
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext { application.currentWeather = it }
                 .singleOrError()
-
     }
 
 
@@ -292,7 +311,7 @@ class LocaterService : Service() {
 
     }
 
-    private fun Location.coordsToString() = "${latitude},${longitude}"
+    private fun Location.coordsToString() = "${latitude.formattedDouble()},${longitude.formattedDouble()}"
 
     private fun Location.getReverseGeocodeLocation(): Single<Array<Address>>? {
         return Retrofit.Builder()
@@ -319,9 +338,11 @@ class LocaterService : Service() {
             intent?.let {
                 if (it.action == WifiManager.WIFI_STATE_CHANGED_ACTION) {
                     val connMgr = context!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-                    connMgr?.activeNetworkInfo?.let {} ?: outboundmessenger.sendMessage(NOINTERENT)
+                    connMgr.activeNetworkInfo?.let {} ?: outboundmessenger.sendMessage(NOINTERENT)
                 }
             }
         }
     }
+
+
 }

@@ -50,7 +50,7 @@ class ComboBox : AppCompatAutoCompleteTextView {
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        setOnEditorActionListener { v, actionId, event ->
+        setOnEditorActionListener { _, actionId, _ ->
             var retValue = false
             if (actionId == KeyEvent.KEYCODE_CALL || actionId == KeyEvent.KEYCODE_ENDCALL) {
                 (adapter as ArrayAdapter<String>).clear()
@@ -70,10 +70,7 @@ class ComboBox : AppCompatAutoCompleteTextView {
                 .subscribe { userMotionData ->
                     when (userMotionData.userMotionEvent) {
                         UserMotionEvent.SINGLETAP -> {
-                            val DRAWABLE_LEFT = 0;
-                            val DRAWABLE_TOP = 1;
                             val DRAWABLE_RIGHT = 2;
-                            val DRAWABLE_BOTTOM = 3;
                             userMotionData.event1?.let {
                                 if (it.getRawX() >= (getRight() - getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
                                     text.clear()
