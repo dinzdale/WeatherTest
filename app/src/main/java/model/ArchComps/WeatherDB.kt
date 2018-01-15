@@ -3,11 +3,12 @@ package model.ArchComps
 import android.arch.persistence.room.*
 import android.content.Context
 import model.CurrentWeather
+import model.Forecast
 
 /**
  * Created by garyjacobs on 1/10/18.
  */
-@Database(entities = arrayOf(CurrentWeather::class), version = 1)
+@Database(entities = arrayOf(CurrentWeather::class,Forecast::class), version = 1)
 @TypeConverters(Converters::class)
 abstract class WeatherDB : RoomDatabase() {
     companion object {

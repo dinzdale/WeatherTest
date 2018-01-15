@@ -14,7 +14,6 @@ data class CurrentWeather(var void: Unit? = null) {
     lateinit var coord: Coordinates
     @Ignore
     lateinit var sys: Sys
-    //@Embedded
     lateinit var weather: ArrayList<Weather>
     lateinit var base: String
     @Embedded
