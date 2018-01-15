@@ -2,9 +2,9 @@ package com.garyjacobs.weathertest
 
 import Events.*
 import android.animation.ObjectAnimator
-import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.util.Log
@@ -33,7 +33,8 @@ class CurrentWeatherFragment : Fragment() {
     lateinit var myActivity: WeatherActivity
     var extendForecastAnimation: ObjectAnimator? = null
     lateinit var currentWeatherViewModel: CurrentWeatherViewModel
-    lateinit var loadingDialog: AlertDialog
+    var lat: Double = 0.0
+    var lon: Double = 0.0
 
     companion object {
         val TAG = CurrentWeatherFragment::class.java.simpleName
@@ -42,31 +43,33 @@ class CurrentWeatherFragment : Fragment() {
             val bundle = Bundle()
             bundle.putDouble("lat", lat)
             bundle.putDouble("lon", lon)
-            if (me == null) {
-                me = CurrentWeatherFragment()
-            }
+            me = CurrentWeatherFragment()
             me!!.arguments = bundle
             return me!!
         }
     }
 
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         myActivity = activity as WeatherActivity
-        arguments?.let {
-            currentWeatherViewModel = ViewModelProviders.of(this, CurrentWeatherViewModelFactory(myActivity.weatherApplication, it.getDouble("lat"),
-                    it.getDouble("lon"))).get(CurrentWeatherViewModel::class.java)
+        savedInstanceState?.let {
+            lat = it.getDouble("lat")
+            lon = it.getDouble("lon")
         }
+        arguments?.let {
+            lat = it.getDouble("lat")
+            lon = it.getDouble("lon")
+        }
+
+        currentWeatherViewModel = ViewModelProviders.of(this, CurrentWeatherViewModelFactory(myActivity.weatherApplication, lat, lon))
+                .get(CurrentWeatherViewModel::class.java)
+
         return inflater!!.inflate(R.layout.current_weather, null)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        loadingDialog = AlertDialog.Builder(this.context)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setMessage(R.string.please_wait)
-                .setPositiveButton(android.R.string.ok, null)
-                .show()
         currentWeatherViewModel.allCurrentWeatherList?.observe(this, object : Observer<List<CurrentWeather>> {
             override fun onChanged(allCurrentWeatherList: List<CurrentWeather>?) {
                 allCurrentWeatherList?.let {
@@ -85,53 +88,11 @@ class CurrentWeatherFragment : Fragment() {
                 }
             }
         })
-        // setup up map in background
         current_weather_map.onCreate(savedInstanceState)
-//        myActivity.weatherApplication.currentWeather?.let {
-//
-//            myActivity.weatherApplication.imageManager.setImage(it.weather[0].icon, current_weather_icon)
-//            city.text = it.name
-//            description.text = it.weather[0].description
-//            current_temp.text = it.main.temp.toInt().toString()
-//            low_temp.text = myActivity.resources.getString(R.string.current_low, it.main.temp_min.toInt())
-//            high_temp.text = myActivity.resources.getString(R.string.current_high, it.main.temp_max.toInt())
-//            val windDirection = it.wind.deg.toInt()
-//
-//            wind.text = myActivity.resources.getString(R.string.current_wind, it.wind.speed.toInt(), getWindDirection(windDirection))
-//
-//            // setup up map in background
-//            current_weather_map.onCreate(savedInstanceState)
-//
-//            current_weather_map.getMapAsync(object : OnMapReadyCallback {
-//
-//                override fun onMapReady(googleMap: GoogleMap?) {
-//                    googleMap?.let {
-//                        val latlon = LatLng(myActivity.weatherApplication.location.latitude, myActivity.weatherApplication.location.longitude)
-//                        it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 10.toFloat()))
-//                        it.addMarker(MarkerOptions()
-//                                .position(latlon))
-//                        googleMap.setOnMapClickListener {
-//                            if (cw_cardview.visibility != View.VISIBLE)
-//                                doSlideAnimation(cw_cardview, SlideMotion.SLIDEINDOWNRIGHT)
-//                            myActivity.weatherApplication.bus.post(MapClickedEvent())
-//                        }
-//                    }
-//                }
-//            })
-//
-//            getFlingObervable(cw_cardview)
-//                    .subscribe {
-//                        doSlideAnimation(cw_cardview, SlideMotion.SLIDEOUTUPLEFT)
-//                    }
-//
-//            getSingleTapObservable(extended_forcast)
-//                    .subscribe {
-//                        myActivity.weatherApplication.bus.post(CurrentWeatherSelectedEvent())
-//                    }
-//
-//            extendForecastAnimation = getAlphaAnimator(extended_forcast)
-//
-//        }
+    }
+
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
     }
 
     fun updateUI(currentWeather: CurrentWeather) {
@@ -146,14 +107,11 @@ class CurrentWeatherFragment : Fragment() {
 
         wind.text = myActivity.resources.getString(R.string.current_wind, currentWeather.wind.speed.toInt(), getWindDirection(windDirection))
 
-        // setup up map in background
-        //current_weather_map.onCreate(savedInstanceState)
-
         current_weather_map.getMapAsync(object : OnMapReadyCallback {
 
             override fun onMapReady(googleMap: GoogleMap?) {
                 googleMap?.let {
-                    val latlon = LatLng(myActivity.weatherApplication.location.latitude, myActivity.weatherApplication.location.longitude)
+                    val latlon = LatLng(currentWeather.coord.lat, currentWeather.coord.lon)
                     it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 10.toFloat()))
                     it.addMarker(MarkerOptions()
                             .position(latlon))
@@ -177,18 +135,17 @@ class CurrentWeatherFragment : Fragment() {
                 }
 
         extendForecastAnimation = getAlphaAnimator(extended_forcast)
-
-        loadingDialog.dismiss()
+        extendForecastAnimation?.start()
 
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        arguments?.let {
+            outState.putDouble("lat", it.getDouble("lat"))
+            outState.putDouble("lon", it.getDouble("lon"))
+        }
         current_weather_map?.onSaveInstanceState(outState)
-    }
-
-    override fun onViewStateRestored(savedInstanceState: Bundle?) {
-        super.onViewStateRestored(savedInstanceState)
     }
 
     override fun onStart() {
@@ -199,8 +156,6 @@ class CurrentWeatherFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         current_weather_map?.onResume()
-        extendForecastAnimation?.start()
-
     }
 
     override fun onPause() {

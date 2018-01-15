@@ -21,4 +21,5 @@ interface WeatherDao {
 
     @Query("SELECT * from CurrentWeather where lat=:lat AND lon=:lon")
     fun loadCurrentWeather(lat: Double, lon: Double): LiveData<List<CurrentWeather>>
+
 }

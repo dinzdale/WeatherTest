@@ -139,7 +139,7 @@ fun myLog(func: String, e1: MotionEvent, e2: MotionEvent? = null) {
     Log.d("RxEvents", sb.toString())
 }
 
-fun getCurrentWeather(context: Context, latitude: Float, longitude: Float): Single<CurrentWeather> {
+fun getCurrentWeather(context: Context, latitude: Double, longitude: Double): Single<CurrentWeather> {
     return Retrofit.Builder()
             .baseUrl(context.resources.getString(R.string.openweathermap_base_url))
             .addConverterFactory(GsonConverterFactory.create())
