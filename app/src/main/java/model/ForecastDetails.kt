@@ -8,7 +8,7 @@ data class ForecastDetails(val void: Unit) {
     lateinit var temp: Temperature
     var pressure: Float = 0.toFloat()
     var humidity: Int = 0
-    lateinit var weather: List<Weather>
+    lateinit var weather: ArrayList<Weather>
     var speed: Float = 0.toFloat()
     var deg: Int = 0
     var clouds: Int = 0

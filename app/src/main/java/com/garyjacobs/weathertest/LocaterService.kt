@@ -109,6 +109,9 @@ class LocaterService : Service() {
                                                             forecast?.let {
                                                                 val bundle = Bundle()
                                                                 bundle.putParcelableArray("LOCATION", addresses)
+                                                                bundle.putDouble("lat", it.lattitude)
+                                                                bundle.putDouble("lon", it.longitude)
+                                                                bundle.putString("title", it.city.name)
                                                                 outboundmessenger.sendMessage(REQUESTEDCURRENTLOCATION, bundle)
                                                             } ?: handleError(REQUESTEDCURRENTLOCATION, throwable.message)
                                                         }
@@ -125,6 +128,9 @@ class LocaterService : Service() {
                                                     getForecast(it[0].latitude, it[0].longitude)
                                                             .subscribe { forecast, throwable ->
                                                                 forecast?.let {
+                                                                    bundle.putDouble("lat", forecast.lattitude)
+                                                                    bundle.putDouble("lon", forecast.longitude)
+                                                                    bundle.putString("title", forecast.city.name)
                                                                     outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
                                                                 } ?: handleError(REQUESTEDLOCATION, throwable.message)
                                                             }
@@ -264,8 +270,13 @@ class LocaterService : Service() {
                 .create(GetForecastData::class.java)
                 .getForecastByCoords(latitude, longitude, res.getString(R.string.openweathermap_appid))
                 .subscribeOn(Schedulers.newThread())
+                .doOnNext {
+                    it.lattitude = latitude
+                    it.longitude = longitude
+                    weatherDB.weatherDao().insertForecast(it)
+                }
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext { application.forecast = it }
+                //.doOnNext { application.forecast = it }
                 .singleOrError()
     }
 
@@ -279,7 +290,6 @@ class LocaterService : Service() {
                 .create(GetForecastData::class.java)
                 .getCurrrentWeatherByCoords(latitude, longitude, res.getString(R.string.openweathermap_appid))
                 .subscribeOn(Schedulers.io())
-                //.doOnNext { application.currentWeather = it }
                 .doOnNext { weatherDB.weatherDao().insertCurrentWeather(it) }
                 .observeOn(AndroidSchedulers.mainThread())
                 .singleOrError()

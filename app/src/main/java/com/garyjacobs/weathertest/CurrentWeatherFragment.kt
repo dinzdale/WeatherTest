@@ -17,8 +17,8 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.current_weather.*
-import model.ArchComps.CurrentWeatherViewModel
-import model.ArchComps.CurrentWeatherViewModelFactory
+import model.ArchComps.WeatherViewModel
+import model.ArchComps.WeatherViewModelFactory
 import model.CurrentWeather
 import model.getWindDirection
 import widgets.SlideMotion
@@ -32,7 +32,7 @@ class CurrentWeatherFragment : Fragment() {
 
     lateinit var myActivity: WeatherActivity
     var extendForecastAnimation: ObjectAnimator? = null
-    lateinit var currentWeatherViewModel: CurrentWeatherViewModel
+    lateinit var currentWeatherViewModel: WeatherViewModel
     var lat: Double = 0.0
     var lon: Double = 0.0
 
@@ -62,8 +62,8 @@ class CurrentWeatherFragment : Fragment() {
             lon = it.getDouble("lon")
         }
 
-        currentWeatherViewModel = ViewModelProviders.of(this, CurrentWeatherViewModelFactory(myActivity.weatherApplication, lat, lon))
-                .get(CurrentWeatherViewModel::class.java)
+        currentWeatherViewModel = ViewModelProviders.of(this, WeatherViewModelFactory(myActivity.weatherApplication, lat, lon))
+                .get(WeatherViewModel::class.java)
 
         return inflater!!.inflate(R.layout.current_weather, null)
     }
