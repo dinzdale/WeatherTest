@@ -43,6 +43,9 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
+import java.util.concurrent.Callable
+import java.util.concurrent.Future
+import java.util.concurrent.FutureTask
 import java.util.function.Consumer
 
 
@@ -81,7 +84,7 @@ class LocaterService : Service() {
         application = getApplication() as WeatherTestApplication
         initLocationServices()
         weatherDB = WeatherDB.getInstance(this)!!
-
+        registerReceiver(broadcastReceiver, IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION))
     }
 
     private val inBoundMessenger = Messenger(InboundHandler())
@@ -93,7 +96,6 @@ class LocaterService : Service() {
                 val lon = incomingMessage.data.getDouble("lon")
                 val networkCall = lat + lon == 0.0
                 outboundmessenger = it.replyTo
-                this@LocaterService.applicationContext.registerReceiver(broadcastReceiver, IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION))
                 if (isNetworkedConnected()) {
                     if (apiConnected) {
                         when (incomingMessage.what) {
@@ -141,14 +143,15 @@ class LocaterService : Service() {
                                                 it.getReverseGeocodeLocation()
                                                         ?.subscribe { addresses, throwable ->
                                                             addresses?.let {
-                                                                getCurrentWeather(addresses[0].latitude.toFloat(), addresses[0].longitude.toFloat())
+                                                                getCurrentWeather(addresses[0].latitude, addresses[0].longitude)
                                                                         .subscribe { currentWeather, throwable ->
                                                                             currentWeather?.let {
                                                                                 // test db
                                                                                 //weatherDB.weatherDao().insertCurrentWeather(it)
                                                                                 val bundle = Bundle()
-                                                                                bundle.putDouble("lat",currentWeather.coord.lat.formattedDouble())
-                                                                                bundle.putDouble("lon",currentWeather.coord.lon.formattedDouble())
+                                                                                bundle.putDouble("lat", currentWeather.coord.lat.formattedDouble())
+                                                                                bundle.putDouble("lon", currentWeather.coord.lon.formattedDouble())
+                                                                                bundle.putString("title", currentWeather.name)
                                                                                 outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION, bundle)
 
                                                                             } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
@@ -156,10 +159,9 @@ class LocaterService : Service() {
                                                             } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
                                                         }
                                             }
-                                }
-                                else {
+                                } else {
                                     // should be in database already
-                                    outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION,incomingMessage.data)
+                                    outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION, incomingMessage.data)
                                 }
                             }
                             REQUESTCURRENTWEATHERWITHLOCATION -> incomingMessage.data.getString("LOCATION")?.let {
@@ -169,10 +171,11 @@ class LocaterService : Service() {
                                                 val bundle = Bundle()
                                                 bundle.putParcelableArray("LOCATION", addresses)
                                                 if (addresses.size == 1) {
-                                                    getCurrentWeather(addresses[0].latitude.toFloat(), addresses[0].longitude.toFloat())
+                                                    getCurrentWeather(addresses[0].latitude, addresses[0].longitude)
                                                             .subscribe { currentWeather, _ ->
-                                                                //application.location = addresses[0]
-                                                                //application.currentWeather = currentWeather
+                                                                bundle.putDouble("lat", currentWeather.coord.lat.formattedDouble())
+                                                                bundle.putDouble("lon", currentWeather.coord.lon.formattedDouble())
+                                                                bundle.putString("title", currentWeather.name)
                                                                 outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERWITHLOCATION, bundle)
                                                             }
 
@@ -202,8 +205,11 @@ class LocaterService : Service() {
     override fun onBind(intent: Intent?) = inBoundMessenger.binder
 
     override fun onUnbind(intent: Intent?): Boolean {
-        this.applicationContext.unregisterReceiver(broadcastReceiver)
-        return super.onUnbind(intent)
+        intent?.let {
+            super.onUnbind(it)
+        }
+        unregisterReceiver(broadcastReceiver)
+        return false
     }
 
 
@@ -263,7 +269,7 @@ class LocaterService : Service() {
                 .singleOrError()
     }
 
-    fun getCurrentWeather(latitude: Float, longitude: Float): Single<CurrentWeather> {
+    fun getCurrentWeather(latitude: Double, longitude: Double): Single<CurrentWeather> {
         val res = application.resources
         return Retrofit.Builder()
                 .baseUrl(res.getString(R.string.openweathermap_base_url))
@@ -306,6 +312,7 @@ class LocaterService : Service() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map { it.toAddresses() }
+                //TODO Remove when done
                 .doOnNext { if (it.size == 1) application.location = it[0] }
                 .singleOrError()
 
@@ -324,7 +331,7 @@ class LocaterService : Service() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map { it.toAddresses() }
-                .doOnNext { application.location = it[0] }
+                // .doOnNext { application.location = it[0] }
                 .singleOrError()
     }
 

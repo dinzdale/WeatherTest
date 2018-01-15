@@ -39,7 +39,7 @@ interface GetForecastData {
     fun getForecastByCoords(@Query("lat") lat: Double, @Query("lon") lon: Double, @Query("appid") appid: String, @Query("cnt") cnt: Int = 16, @Query("units") units: String = "imperial"): Observable<Forecast>
 
     @GET("data/2.5/weather?mode=json")
-    fun getCurrrentWeatherByCoords(@Query("lat") lat: Float, @Query("lon") lon: Float, @Query("appid") appid: String, @Query("units") units: String = "imperial"): Observable<CurrentWeather>
+    fun getCurrrentWeatherByCoords(@Query("lat") lat: Double, @Query("lon") lon: Double, @Query("appid") appid: String, @Query("units") units: String = "imperial"): Observable<CurrentWeather>
 
     // http://tile.openweathermap.org/map/{layer}/{z}/{x}/{y}.png?appid={api_key}
     @GET("map/{layer}/{z}/{x}/{y}.png")
