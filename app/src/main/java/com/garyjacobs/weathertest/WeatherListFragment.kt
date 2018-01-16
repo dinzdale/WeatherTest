@@ -2,8 +2,10 @@ package com.garyjacobs.weathertest
 
 
 import Events.ForecastListSelectedEvent
-import Events.getFlingObervable
 import Events.getLongPressObservable
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -19,14 +21,17 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.TileOverlayOptions
 import com.google.android.gms.maps.model.UrlTileProvider
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import model.Forecast
 import kotlinx.android.synthetic.main.weather_list.*
 import kotlinx.android.synthetic.main.weather_list_item.view.*
+import model.ArchComps.WeatherViewModel
+import model.ArchComps.WeatherViewModelFactory
 import model.getWindDirection
 import widgets.SlideMotion
 import widgets.doSlideAnimation
 import java.net.URL
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * A simple [Fragment] subclass.
@@ -35,36 +40,69 @@ class WeatherListFragment : Fragment() {
 
 
     private lateinit var myActivity: WeatherActivity
+    private lateinit var weatherViewModel: WeatherViewModel
+    private var currentLat: Double = 0.0
+    private var currentLon: Double = 0.0
 
     companion object {
         val TAG = WeatherListFragment::class.java.simpleName
         var me: WeatherListFragment? = null
-        fun getInstance(): WeatherListFragment {
-            if (me == null) {
-                WeatherListFragment.me = WeatherListFragment()
-            }
+        fun getInstance(lat: Double, lon: Double): WeatherListFragment {
+            WeatherListFragment.me = WeatherListFragment()
+            val bundle = Bundle()
+            bundle.putDouble("lat", lat)
+            bundle.putDouble("lon", lon)
+            me!!.arguments = bundle
             return me!!
         }
     }
 
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        myActivity = activity as WeatherActivity
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-       return inflater!!.inflate(R.layout.weather_list, container, false)
+        arguments?.let {
+            currentLat = it.getDouble("lat")
+            currentLon = it.getDouble("lon")
+        }
+        savedInstanceState?.let {
+            currentLat = it.getDouble("lat")
+            currentLon = it.getDouble("lon")
+        }
+
+        return inflater!!.inflate(R.layout.weather_list, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        myActivity = activity as WeatherActivity
+
+        weatherViewModel = ViewModelProviders.of(this, WeatherViewModelFactory(myActivity.weatherApplication, currentLat, currentLon)).get(WeatherViewModel::class.java)
+        weatherViewModel.forecastList?.observe(this, object : Observer<List<Forecast>> {
+            override fun onChanged(list: List<Forecast>?) {
+                list?.let {
+                    if (it.size > 0) {
+                        updateUI(it[0])
+                    }
+                }
+            }
+        })
+        extended_map.onCreate(savedInstanceState)
+    }
+
+    private fun updateUI(forecast: Forecast) {
         weather_list!!.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
-        val myRecyclerViewAdapter = MyRecyclerViewAdapter(myActivity.weatherApplication.forecast!!, View.OnClickListener { v -> onItemClick(weather_list!!.getChildAdapterPosition(v)) })
+        val myRecyclerViewAdapter = MyRecyclerViewAdapter(forecast, View.OnClickListener { v -> onItemClick(weather_list!!.getChildAdapterPosition(v)) })
         weather_list!!.adapter = myRecyclerViewAdapter
         // handle map
         // setup up map in background
-        extended_map.onCreate(savedInstanceState)
+
         extended_map.getMapAsync(object : OnMapReadyCallback {
 
             override fun onMapReady(googleMap: GoogleMap?) {
                 googleMap?.let {
-                    val latlon = LatLng(myActivity.weatherApplication.location.latitude, myActivity.weatherApplication.location.longitude)
+                    val latlon = LatLng(forecast.lattitude, forecast.longitude)
                     it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 0.toFloat()))
                     it.addMarker(MarkerOptions()
                             .position(latlon))
@@ -90,6 +128,11 @@ class WeatherListFragment : Fragment() {
                 }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putDouble("lat", currentLat)
+        outState.putDouble("lon", currentLon)
+    }
 
     override fun onStart() {
         super.onStart()

@@ -54,6 +54,9 @@ class WeatherMainActivity : WeatherActivity() {
 
         setContentView(R.layout.activity_main)
         location_cb.setOnClickListener(locationClickListener)
+        if (onRestore && !loadCurrentWeather) {
+            location_cb.visibility = View.GONE
+        }
         location_cb.UserFlingAction = {
             doSlideAnimation(location_cb, SlideMotion.SLIDEOUTUPLEFT)
         }
@@ -68,7 +71,6 @@ class WeatherMainActivity : WeatherActivity() {
                 outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION)
             }
         })
-
     }
 
     val serviceConnection = object : ServiceConnection {
@@ -85,8 +87,7 @@ class WeatherMainActivity : WeatherActivity() {
                 bundle.putDouble("lat", currentLat)
                 bundle.putDouble("lon", currentLon)
                 outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION, bundle)
-            }
-            else {
+            } else {
                 title = currentTitle
             }
         }
@@ -148,9 +149,11 @@ class WeatherMainActivity : WeatherActivity() {
                     }
                     LocaterService.REQUESTEDCURRENTLOCATION -> {
                         if (message.data.getBoolean("STATUS")) {
-                            val addresses = message.data.get("LOCATION") as Array<Address>
-                            supportActionBar?.title = addresses[0].formatAddress()
-                            loadAllFragments()
+                            currentTitle = message.data.getString("title")
+                            supportActionBar?.title = currentTitle
+                            currentLat = message.data.getDouble("lat")
+                            currentLon = message.data.getDouble("lon")
+                            loadAllFragments(currentLat, currentLon)
                         } else {
                             showErrorDialog(message.data.getString("ERROR"))
                         }
@@ -159,8 +162,11 @@ class WeatherMainActivity : WeatherActivity() {
                         if (message.data.getBoolean("STATUS")) {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             if (addresses.size == 1) {
-                                supportActionBar?.title = addresses[0].formatAddress()
-                                loadAllFragments()
+                                currentTitle = message.data.getString("title")
+                                supportActionBar?.title = currentTitle
+                                currentLat = message.data.getDouble("lat")
+                                currentLon = message.data.getDouble("lon")
+                                loadAllFragments(currentLat, currentLon)
                             } else {
                                 location_cb.updateComboBoxSelections(addresses)
                             }
@@ -236,9 +242,8 @@ class WeatherMainActivity : WeatherActivity() {
                             .commit()
                 }
             } else {
-                //location_cb.visibility = View.GONE
                 doSlideAnimation(location_cb, SlideMotion.SLIDEUPOUT, {
-                    fragTM.replace(R.id.extended_weather_container, WeatherListFragment(), WeatherListFragment.TAG)
+                    fragTM.replace(R.id.extended_weather_container, WeatherListFragment.getInstance(lat, lon), WeatherListFragment.TAG)
                             .addToBackStack(WeatherListFragment.TAG)
                             .commit()
                 })
@@ -255,9 +260,8 @@ class WeatherMainActivity : WeatherActivity() {
                             .commit()
                 }
             } else {
-                //location_cb.visibility = View.GONE
                 doSlideAnimation(location_cb, SlideMotion.SLIDEUPOUT, {
-                    fragTM.replace(R.id.weather_container, WeatherListFragment(), WeatherListFragment.TAG)
+                    fragTM.replace(R.id.weather_container, WeatherListFragment.getInstance(lat, lon), WeatherListFragment.TAG)
                             .addToBackStack(WeatherListFragment.TAG)
                             .commit()
                 })
