@@ -243,7 +243,6 @@ class WeatherMainActivity : WeatherActivity() {
                             .commit()
                 }
             } else {
-                //location_cb.visibility = View.GONE
                 doSlideAnimation(location_cb, SlideMotion.SLIDEUPOUT, {
                     fragTM.replace(R.id.extended_weather_container, WeatherListFragment.getInstance(lat, lon), WeatherListFragment.TAG)
                             .addToBackStack(WeatherListFragment.TAG)
@@ -262,7 +261,6 @@ class WeatherMainActivity : WeatherActivity() {
                             .commit()
                 }
             } else {
-                //location_cb.visibility = View.GONE
                 doSlideAnimation(location_cb, SlideMotion.SLIDEUPOUT, {
                     fragTM.replace(R.id.weather_container, WeatherListFragment.getInstance(lat, lon), WeatherListFragment.TAG)
                             .addToBackStack(WeatherListFragment.TAG)

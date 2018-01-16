@@ -11,9 +11,6 @@ import model.Forecast
  * Created by gjacobs on 11/1/15.
  */
 class WeatherTestApplication : Application() {
-    //var currentWeather: CurrentWeather? = null
-    var forecast: Forecast? = null
-    lateinit var location: Address
     lateinit var imageManager: ImageManager
     lateinit var bus: Bus
 
