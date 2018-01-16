@@ -36,7 +36,9 @@ data class WeatherViewModel(val application: WeatherTestApplication, val lat: Do
             }
             return field
         }
+
 }
+
 
 class WeatherViewModelFactory(val application: WeatherTestApplication, val lat: Double, val lon: Double) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {

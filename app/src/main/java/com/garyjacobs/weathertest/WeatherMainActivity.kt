@@ -71,7 +71,6 @@ class WeatherMainActivity : WeatherActivity() {
                 outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION)
             }
         })
-
     }
 
     val serviceConnection = object : ServiceConnection {
