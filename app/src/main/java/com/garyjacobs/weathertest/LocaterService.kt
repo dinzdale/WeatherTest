@@ -276,7 +276,6 @@ class LocaterService : Service() {
                     weatherDB.weatherDao().insertForecast(it)
                 }
                 .observeOn(AndroidSchedulers.mainThread())
-                //.doOnNext { application.forecast = it }
                 .singleOrError()
     }
 
@@ -322,8 +321,6 @@ class LocaterService : Service() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map { it.toAddresses() }
-                //TODO Remove when done
-                .doOnNext { if (it.size == 1) application.location = it[0] }
                 .singleOrError()
 
     }
@@ -341,7 +338,6 @@ class LocaterService : Service() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map { it.toAddresses() }
-                // .doOnNext { application.location = it[0] }
                 .singleOrError()
     }
 
