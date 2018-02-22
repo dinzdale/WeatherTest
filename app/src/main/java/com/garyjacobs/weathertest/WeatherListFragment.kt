@@ -35,25 +35,37 @@ class WeatherListFragment : Fragment() {
 
 
     private lateinit var myActivity: WeatherActivity
+    var lat: Double = 0.0
+    var lon: Double = 0.0
 
     companion object {
         val TAG = WeatherListFragment::class.java.simpleName
         var me: WeatherListFragment? = null
-        fun getInstance(): WeatherListFragment {
-            if (me == null) {
-                WeatherListFragment.me = WeatherListFragment()
-            }
+        fun getInstance(lat: Double, lon: Double): WeatherListFragment {
+            val bundle = Bundle()
+            bundle.putDouble("lat", lat)
+            bundle.putDouble("lon", lon)
+            me = WeatherListFragment()
+            me!!.arguments = bundle
             return me!!
         }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-       return inflater!!.inflate(R.layout.weather_list, container, false)
+        return inflater!!.inflate(R.layout.weather_list, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         myActivity = activity as WeatherActivity
+        arguments?.let {
+            lat = it.getDouble("lat")
+            lon = it.getDouble("lon")
+        }
+//        savedInstanceState?.let {
+//            lat = it.getDouble("lat")
+//            lon = it.getDouble("lon")
+//        }
         weather_list!!.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
         val myRecyclerViewAdapter = MyRecyclerViewAdapter(myActivity.weatherApplication.forecast!!, View.OnClickListener { v -> onItemClick(weather_list!!.getChildAdapterPosition(v)) })
         weather_list!!.adapter = myRecyclerViewAdapter
@@ -64,7 +76,7 @@ class WeatherListFragment : Fragment() {
 
             override fun onMapReady(googleMap: GoogleMap?) {
                 googleMap?.let {
-                    val latlon = LatLng(myActivity.weatherApplication.location.latitude, myActivity.weatherApplication.location.longitude)
+                    val latlon = LatLng(lat, lon)
                     it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 0.toFloat()))
                     it.addMarker(MarkerOptions()
                             .position(latlon))

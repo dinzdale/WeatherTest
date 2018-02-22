@@ -10,6 +10,7 @@ import android.arch.persistence.room.Room
 import android.content.*
 import android.content.pm.PackageManager
 import android.location.Address
+import android.opengl.Visibility
 import android.os.*
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
@@ -68,7 +69,9 @@ class WeatherMainActivity : WeatherActivity() {
                 outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION)
             }
         })
-
+        if (onRestore && !loadCurrentWeather) {
+            location_cb.visibility = View.GONE
+        }
     }
 
     val serviceConnection = object : ServiceConnection {
@@ -85,8 +88,7 @@ class WeatherMainActivity : WeatherActivity() {
                 bundle.putDouble("lat", currentLat)
                 bundle.putDouble("lon", currentLon)
                 outboundMessenger.sendMessage(LocaterService.REQUESTCURRENTWEATHERCURRENTLOCATION, bundle)
-            }
-            else {
+            } else {
                 title = currentTitle
             }
         }
@@ -150,7 +152,9 @@ class WeatherMainActivity : WeatherActivity() {
                         if (message.data.getBoolean("STATUS")) {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             supportActionBar?.title = addresses[0].formatAddress()
-                            loadAllFragments()
+                            currentLat = message.data.getDouble("lat")
+                            currentLon = message.data.getDouble("lon")
+                            loadAllFragments(currentLat, currentLon)
                         } else {
                             showErrorDialog(message.data.getString("ERROR"))
                         }
@@ -160,7 +164,9 @@ class WeatherMainActivity : WeatherActivity() {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             if (addresses.size == 1) {
                                 supportActionBar?.title = addresses[0].formatAddress()
-                                loadAllFragments()
+                                currentLat = message.data.getDouble("lat")
+                                currentLon = message.data.getDouble("lon")
+                                loadAllFragments(currentLat, currentLon)
                             } else {
                                 location_cb.updateComboBoxSelections(addresses)
                             }
@@ -236,9 +242,9 @@ class WeatherMainActivity : WeatherActivity() {
                             .commit()
                 }
             } else {
-                //location_cb.visibility = View.GONE
+                location_cb.visibility = View.GONE
                 doSlideAnimation(location_cb, SlideMotion.SLIDEUPOUT, {
-                    fragTM.replace(R.id.extended_weather_container, WeatherListFragment(), WeatherListFragment.TAG)
+                    fragTM.replace(R.id.extended_weather_container, WeatherListFragment.getInstance(lat, lon), WeatherListFragment.TAG)
                             .addToBackStack(WeatherListFragment.TAG)
                             .commit()
                 })
@@ -255,9 +261,9 @@ class WeatherMainActivity : WeatherActivity() {
                             .commit()
                 }
             } else {
-                //location_cb.visibility = View.GONE
+                location_cb.visibility = View.GONE
                 doSlideAnimation(location_cb, SlideMotion.SLIDEUPOUT, {
-                    fragTM.replace(R.id.weather_container, WeatherListFragment(), WeatherListFragment.TAG)
+                    fragTM.replace(R.id.weather_container, WeatherListFragment.getInstance(lat, lon), WeatherListFragment.TAG)
                             .addToBackStack(WeatherListFragment.TAG)
                             .commit()
                 })
