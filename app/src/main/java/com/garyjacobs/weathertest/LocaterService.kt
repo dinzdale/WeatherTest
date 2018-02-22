@@ -104,11 +104,15 @@ class LocaterService : Service() {
                                 it.getReverseGeocodeLocation()
                                         ?.subscribe { addresses, throwable ->
                                             addresses?.let {
+                                                val currentLat = addresses[0].latitude
+                                                val currentLon = addresses[0].longitude
                                                 getForecast(addresses[0].latitude, addresses[0].longitude)
                                                         .subscribe { forecast, throwable ->
                                                             forecast?.let {
                                                                 val bundle = Bundle()
                                                                 bundle.putParcelableArray("LOCATION", addresses)
+                                                                bundle.putDouble("lat", currentLat)
+                                                                bundle.putDouble("lon", currentLon)
                                                                 outboundmessenger.sendMessage(REQUESTEDCURRENTLOCATION, bundle)
                                                             } ?: handleError(REQUESTEDCURRENTLOCATION, throwable.message)
                                                         }
@@ -119,12 +123,16 @@ class LocaterService : Service() {
                                 getGeocodeLocation(it)
                                         ?.subscribe { addresses, throwable ->
                                             addresses?.let {
+                                                val currentLat = addresses[0].latitude
+                                                val currentLon = addresses[0].longitude
                                                 val bundle = Bundle()
                                                 bundle.putParcelableArray("LOCATION", it)
                                                 if (addresses.size == 1) {
                                                     getForecast(it[0].latitude, it[0].longitude)
                                                             .subscribe { forecast, throwable ->
                                                                 forecast?.let {
+                                                                    bundle.putDouble("lat", currentLat)
+                                                                    bundle.putDouble("lon", currentLon)
                                                                     outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
                                                                 } ?: handleError(REQUESTEDLOCATION, throwable.message)
                                                             }
@@ -146,8 +154,6 @@ class LocaterService : Service() {
                                                                 getCurrentWeather(addresses[0].latitude, addresses[0].longitude)
                                                                         .subscribe { currentWeather, throwable ->
                                                                             currentWeather?.let {
-                                                                                // test db
-                                                                                //weatherDB.weatherDao().insertCurrentWeather(it)
                                                                                 val bundle = Bundle()
                                                                                 bundle.putDouble("lat", currentWeather.coord.lat.formattedDouble())
                                                                                 bundle.putDouble("lon", currentWeather.coord.lon.formattedDouble())
@@ -312,8 +318,6 @@ class LocaterService : Service() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map { it.toAddresses() }
-                //TODO Remove when done
-                .doOnNext { if (it.size == 1) application.location = it[0] }
                 .singleOrError()
 
     }
