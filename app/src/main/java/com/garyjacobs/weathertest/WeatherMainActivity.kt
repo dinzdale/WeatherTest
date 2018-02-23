@@ -127,9 +127,18 @@ class WeatherMainActivity : WeatherActivity() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION), 100)
         } else {
-            val intent = Intent(this, LocaterService::class.java)
-            bindService(intent, serviceConnection, BIND_AUTO_CREATE)
+            bindToService()
         }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        bindToService()
+    }
+
+    private fun bindToService() {
+        val intent = Intent(this, LocaterService::class.java)
+        bindService(intent, serviceConnection, BIND_AUTO_CREATE)
     }
 
     override fun onStop() {
