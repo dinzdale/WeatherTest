@@ -65,7 +65,7 @@ class CurrentWeatherFragment : Fragment() {
         currentWeatherViewModel = ViewModelProviders.of(this, CurrentWeatherViewModelFactory(myActivity.weatherApplication, lat, lon))
                 .get(CurrentWeatherViewModel::class.java)
 
-        return inflater!!.inflate(R.layout.current_weather, null)
+        return inflater.inflate(R.layout.current_weather, null)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
