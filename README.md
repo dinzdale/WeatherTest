@@ -6,6 +6,7 @@ Some Features:
 3) employs Android's new Architecture components to (Room, ViewModel, LiveData) to help with persistance of the data and reduce 
 unnecessary network calls.
 4) Uses RxJava to define observers and observables along with retrofit for network calls as well as some UI event handling.
+5) Use Kotlin coroutines/callbackFlow to handle fusedClientApi initialization - for gms.
 
 The project evolved overtime as I decided to build on it using some the latest technologies. There is some tech debt/code clean
 that could be applied to the project.
