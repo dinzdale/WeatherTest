@@ -7,10 +7,10 @@
     <string name="mapquest_consumer_key">rzpzA4yKuNAsCGPCUWaGCwc8zyjbXJM1</string>
     <string name="mapquest_secret_key">CwMUUASkQphc9RpO</string>
     <!-- URLS -->
-    <string name="openweathermap_base_url">http://api.openweathermap.org</string>
-    <string name="openweathermap_tile_url">http://tile.openweathermap.org/map/%1$s/%2$d/%3$d/%4$d.png?appid=%5$s</string>
+    <string name="openweathermap_base_url">https://api.openweathermap.org</string>
+    <string name="openweathermap_tile_url">https://tile.openweathermap.org/map/%1$s/%2$d/%3$d/%4$d.png?appid=%5$s</string>
 
-    <string name="mapquest_geocode_base_url">http://www.mapquestapi.com</string>
+    <string name="mapquest_geocode_base_url">https://www.mapquestapi.com</string>
     <string name="daily_forcast_url_retro">/data/2.5/forecast/daily?q={q},{country_code}&amp;cnt={cnt}&amp;appid={app_id}</string>
 
     <string name="temprature_string">Min: %1$2.0f Max: %2$2.0f Day: %3$2.0f Night: %4$2.0f Eve: %5$2.0f Morn: %6$2.0f"</string>

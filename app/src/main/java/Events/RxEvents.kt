@@ -1,12 +1,12 @@
 package Events
 
 import android.content.Context
-import android.support.v4.view.GestureDetectorCompat
-import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.view.GestureDetectorCompat
+import androidx.recyclerview.widget.RecyclerView
 import com.garyjacobs.weathertest.R
 import io.reactivex.*
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -57,7 +57,7 @@ fun getSingleTapObservable(view: View): Observable<MotionEvent> {
         })
         if (view is RecyclerView) {
             view.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
-                override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean {
+                override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
                     gestureDetecor.onTouchEvent(e)
                     return super.onInterceptTouchEvent(rv, e)
                 }
@@ -84,7 +84,7 @@ fun getLongPressObservable(view: View): Observable<MotionEvent> {
         })
         if (view is RecyclerView) {
             view.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
-                override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean {
+                override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
                     gestureDector.onTouchEvent(e)
                     return super.onInterceptTouchEvent(rv, e)
                 }

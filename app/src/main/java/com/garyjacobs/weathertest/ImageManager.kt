@@ -3,9 +3,7 @@ package com.garyjacobs.weathertest
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
-import android.provider.Settings
 import android.util.DisplayMetrics
-import android.view.View
 
 import android.widget.ImageView
 
@@ -20,6 +18,7 @@ import android.util.Log
 import android.util.LruCache
 import io.reactivex.Single
 import io.reactivex.SingleObserver
+import java.lang.NullPointerException
 
 /**
  * Created by gjacobs on 11/5/15.
@@ -96,7 +95,7 @@ class ImageManager(maxSize: Int) {
     @Throws(Exception::class)
     fun oldBitmapFetcher(url: String): Bitmap {
         val httpURLConnection = URL(url).openConnection() as HttpURLConnection
-        return BitmapFactory.decodeStream(httpURLConnection.inputStream, null, bitmapOptions)
+        return BitmapFactory.decodeStream(httpURLConnection.inputStream, null, bitmapOptions)?: throw NullPointerException("Could not decode bitmap")
     }
 
 }

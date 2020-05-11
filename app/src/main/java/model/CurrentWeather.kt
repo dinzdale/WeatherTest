@@ -1,6 +1,6 @@
 package model
 
-import android.arch.persistence.room.*
+import androidx.room.*
 import model.ArchComps.Converters
 
 /**

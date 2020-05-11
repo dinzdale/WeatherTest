@@ -1,25 +1,18 @@
 package com.garyjacobs.weathertest
 
 
-import android.os.Bundle
-import android.app.Fragment
-import android.content.Context
 import android.location.Address
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
+import androidx.fragment.app.Fragment
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import kotlinx.android.synthetic.main.forecast_details.map
-import kotlinx.android.synthetic.main.forecast_details.temperature_values
-import model.Forecast
-import model.ForecastDetails
-import model.Temperature
-import model.Weather
+import kotlinx.android.synthetic.main.forecast_details.*
 
 
 /**
@@ -37,18 +30,19 @@ class ForecastDetailsFragment : Fragment() {
         super.onCreate(savedInstanceState)
         myActivity = activity as WeatherActivity
         arguments?.let {
-            index = arguments.getInt(ARG_INDEX)
-            location = arguments.getParcelable<Address>("LOCATION")
+            index = it.getInt(ARG_INDEX)
+            it.getParcelable<Address>("LOCATION")?.let{
+                location.latitude = it.latitude
+                location.longitude = it.longitude
+            }
         }
     }
 
-
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
-
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater!!.inflate(R.layout.forecast_details, container, false)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val forecast = myActivity.weatherApplication.forecast
         val temperature = forecast!!.list[index].temp
         temperature_values.text = getString(R.string.temprature_string, temperature.min, temperature.max, temperature.day, temperature.night, temperature.eve, temperature.morn)
@@ -59,15 +53,17 @@ class ForecastDetailsFragment : Fragment() {
     val mapReadyImp = object : OnMapReadyCallback {
         override fun onMapReady(googleMap: GoogleMap?) {
             googleMap?.let {
-                val latlon = LatLng(location.latitude, location.longitude)
-                it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 10.toFloat()))
-                it.addMarker(MarkerOptions()
-                        .position(latlon))
+                if (::location.isInitialized) {
+                    val latlon = LatLng(location.latitude, location.longitude)
+                    it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 10.toFloat()))
+                    it.addMarker(MarkerOptions()
+                            .position(latlon))
+                }
             }
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         map?.onSaveInstanceState(outState)
     }
@@ -84,12 +80,12 @@ class ForecastDetailsFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        map?.onDestroy()
+        map.onDestroy()
     }
 
     override fun onLowMemory() {
         super.onLowMemory()
-        map?.onLowMemory()
+        map.onLowMemory()
     }
 
     companion object {

@@ -1,26 +1,22 @@
 package com.garyjacobs.weathertest
 
-import Events.*
+import Events.CurrentWeatherSelectedEvent
+import Events.MapClickedEvent
 import android.Manifest
-import android.app.AlertDialog
-import android.app.Fragment
-import android.app.FragmentTransaction
-import android.arch.persistence.room.Room
-import android.content.*
+import android.content.ComponentName
+import android.content.DialogInterface
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.location.Address
-import android.opengl.Visibility
 import android.os.*
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import android.util.Log
+
 import android.view.View
-import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.squareup.otto.Subscribe
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.weather_panel_layout.view.*
-import model.ArchComps.WeatherDB
-import model.CurrentWeather
 import model.formatAddress
 import widgets.ComboBox
 import widgets.SlideMotion
@@ -36,7 +32,7 @@ class WeatherMainActivity : WeatherActivity() {
     private var locaterServiceBound = false
     private var loadCurrentWeather = true
     private var isTwoPane = false
-    private lateinit var networkWarning: AlertDialog
+    private lateinit var networkWarning: androidx.appcompat.app.AlertDialog
     private var currentLat: Double = 0.0
     private var currentLon: Double = 0.0
     private var onRestore = false;
@@ -48,7 +44,7 @@ class WeatherMainActivity : WeatherActivity() {
             currentLat = savedInstanceState.getDouble("lat")
             currentLon = savedInstanceState.getDouble("lon")
             loadCurrentWeather = savedInstanceState.getBoolean("loadcurrentweather")
-            currentTitle = savedInstanceState.getString("title")
+            currentTitle = savedInstanceState.getString("title") ?: " "
             true
         } ?: false
 
@@ -184,7 +180,7 @@ class WeatherMainActivity : WeatherActivity() {
                     }
                     LocaterService.REQUESTEDCURRENTWEATHERCURRENTLOCATION -> {
                         if (message.data.getBoolean("STATUS")) {
-                            currentTitle = message.data.getString("title")
+                            currentTitle = message.data.getString("title")?:" "
                             supportActionBar?.title = currentTitle
                             currentLat = message.data.getDouble("lat")
                             currentLon = message.data.getDouble("lon")
@@ -197,7 +193,7 @@ class WeatherMainActivity : WeatherActivity() {
                         if (message.data.getBoolean("STATUS") && message.data.get("LOCATION") != null) {
                             val addresses = message.data.get("LOCATION") as Array<Address>
                             if (addresses.size == 1) {
-                                currentTitle = message.data.getString("title")
+                                currentTitle = message.data.getString("title")?:" "
                                 supportActionBar?.title = currentTitle
                                 currentLat = message.data.getDouble("lat")
                                 currentLon = message.data.getDouble("lon")
@@ -217,17 +213,13 @@ class WeatherMainActivity : WeatherActivity() {
         }
     }
 
-    override fun onAttachFragment(fragment: android.support.v4.app.Fragment?) {
-        super.onAttachFragment(fragment)
-    }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
-        outState?.let {
-            outState.putDouble("lat", currentLat)
-            outState.putDouble("lon", currentLon)
-            outState.putString("title", currentTitle)
-            outState.putBoolean("loadcurrentweather", loadCurrentWeather)
-        }
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putDouble("lat", currentLat)
+        outState.putDouble("lon", currentLon)
+        outState.putString("title", currentTitle)
+        outState.putBoolean("loadcurrentweather", loadCurrentWeather)
+
         super.onSaveInstanceState(outState)
     }
 
@@ -312,16 +304,16 @@ class WeatherMainActivity : WeatherActivity() {
     }
 
 
-    private fun getNetworkConnectionWarning(message: String? = getString(R.string.no_network_warning), listener: DialogInterface.OnClickListener? = null): AlertDialog {
-        return AlertDialog.Builder(this)
+    private fun getNetworkConnectionWarning(message: String? = getString(R.string.no_network_warning), listener: DialogInterface.OnClickListener? = null): androidx.appcompat.app.AlertDialog {
+        return androidx.appcompat.app.AlertDialog.Builder(this)
                 .setMessage(message)
                 .setPositiveButton(android.R.string.ok, listener)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .create()
     }
 
-    private fun getErrorDialog(message: String? = getString(R.string.default_error_dialog_msg), listener: DialogInterface.OnClickListener? = null): AlertDialog {
-        return AlertDialog.Builder(this)
+    private fun getErrorDialog(message: String? = getString(R.string.default_error_dialog_msg), listener: DialogInterface.OnClickListener? = null): androidx.appcompat.app.AlertDialog {
+        return androidx.appcompat.app.AlertDialog.Builder(this)
                 .setMessage(message)
                 .setPositiveButton(android.R.string.ok, listener)
                 .setIcon(android.R.drawable.stat_notify_error)

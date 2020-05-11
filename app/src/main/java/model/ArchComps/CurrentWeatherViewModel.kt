@@ -1,12 +1,11 @@
 package model.ArchComps
 
-import Events.getCurrentWeather
-import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.ViewModel
-import android.arch.lifecycle.ViewModelProvider
-import android.content.Context
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+
+
 import com.garyjacobs.weathertest.WeatherTestApplication
 import model.CurrentWeather
 

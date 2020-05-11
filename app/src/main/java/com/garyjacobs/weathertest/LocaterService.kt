@@ -1,52 +1,38 @@
 package com.garyjacobs.weathertest
 
 import android.app.Service
-import android.arch.lifecycle.ViewModelProviders
-import android.arch.persistence.room.Room
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.location.Address
-import android.location.Geocoder
 import android.location.Location
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.*
-import android.widget.Toast
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.GeofencingClient
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.LocationSource
-import io.reactivex.Observable
-import io.reactivex.Observer
+import com.google.android.gms.location.*
 import io.reactivex.Single
-import io.reactivex.SingleObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.launch
 import model.ArchComps.WeatherDB
 import model.CurrentWeather
 import model.Forecast
-import model.Mapquest.GeocodeData
 import model.formattedDouble
 import network.GetForecastData
 import network.GetGeocodeInfo
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-import java.util.concurrent.Callable
-import java.util.concurrent.Future
-import java.util.concurrent.FutureTask
-import java.util.function.Consumer
 
 
 //import retrofit.*
@@ -54,7 +40,7 @@ import java.util.function.Consumer
 /**
  * Created by garyjacobs on 11/24/17.
  */
-class LocaterService : Service() {
+class LocaterService : Service(), CoroutineScope by MainScope() {
 
     companion object {
         val NOINTERENT = -1
@@ -71,21 +57,29 @@ class LocaterService : Service() {
     }
 
     private lateinit var application: WeatherTestApplication
-    private lateinit var googleAPIClient: GoogleApiClient
-    private lateinit var locationRequest: LocationRequest
+
+    //private lateinit var googleAPIClient: GoogleApiClient
+    //private lateinit var locationRequest: LocationRequest
     private lateinit var outboundmessenger: Messenger
     private var isBound = false
-    private var apiConnected = true
+    private var apiConnected = false
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var weatherDB: WeatherDB
 
     override fun onCreate() {
         super.onCreate()
         application = getApplication() as WeatherTestApplication
-        initLocationServices()
+
         weatherDB = WeatherDB.getInstance(this)!!
         registerReceiver(broadcastReceiver, IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION))
+        launch {
+             initLocationServices(this@LocaterService).collect {
+                fusedLocationProviderClient = it
+                apiConnected = true
+            }
+        }
     }
+
 
     private val inBoundMessenger = Messenger(InboundHandler())
 
@@ -114,10 +108,13 @@ class LocaterService : Service() {
                                                                 bundle.putDouble("lat", currentLat)
                                                                 bundle.putDouble("lon", currentLon)
                                                                 outboundmessenger.sendMessage(REQUESTEDCURRENTLOCATION, bundle)
-                                                            } ?: handleError(REQUESTEDCURRENTLOCATION, throwable.message)
+                                                            }
+                                                                    ?: handleError(REQUESTEDCURRENTLOCATION, throwable.message)
                                                         }
-                                            } ?: handleError(REQUESTEDCURRENTLOCATION, throwable.message)
-                                        } ?: handleError(REQUESTEDCURRENTLOCATION, "Error getting current location")
+                                            }
+                                                    ?: handleError(REQUESTEDCURRENTLOCATION, throwable.message)
+                                        }
+                                        ?: handleError(REQUESTEDCURRENTLOCATION, "Error getting current location")
                             }
                             REQUESTLOCATION -> incomingMessage.data.getString("LOCATION")?.let {
                                 getGeocodeLocation(it)
@@ -134,7 +131,8 @@ class LocaterService : Service() {
                                                                     bundle.putDouble("lat", currentLat)
                                                                     bundle.putDouble("lon", currentLon)
                                                                     outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
-                                                                } ?: handleError(REQUESTEDLOCATION, throwable.message)
+                                                                }
+                                                                        ?: handleError(REQUESTEDLOCATION, throwable.message)
                                                             }
                                                 } else {
                                                     outboundmessenger.sendMessage(REQUESTEDLOCATION, bundle)
@@ -147,23 +145,31 @@ class LocaterService : Service() {
                                 if (networkCall) {
                                     fusedLocationProviderClient
                                             .lastLocation
+                                            .addOnFailureListener {
+                                                handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, it.message)
+                                            }
                                             .addOnSuccessListener {
-                                                it.getReverseGeocodeLocation()
-                                                        ?.subscribe { addresses, throwable ->
-                                                            addresses?.let {
-                                                                getCurrentWeather(addresses[0].latitude, addresses[0].longitude)
-                                                                        .subscribe { currentWeather, throwable ->
-                                                                            currentWeather?.let {
-                                                                                val bundle = Bundle()
-                                                                                bundle.putDouble("lat", currentWeather.coord.lat.formattedDouble())
-                                                                                bundle.putDouble("lon", currentWeather.coord.lon.formattedDouble())
-                                                                                bundle.putString("title", currentWeather.name)
-                                                                                outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION, bundle)
+                                                it?.getReverseGeocodeLocation()
+                                                        ?.let {
+                                                            it.subscribe { addresses, throwable ->
+                                                                addresses?.let {
+                                                                    getCurrentWeather(addresses[0].latitude, addresses[0].longitude)
+                                                                            .subscribe { currentWeather, throwable ->
+                                                                                currentWeather?.let {
+                                                                                    val bundle = Bundle()
+                                                                                    bundle.putDouble("lat", currentWeather.coord.lat.formattedDouble())
+                                                                                    bundle.putDouble("lon", currentWeather.coord.lon.formattedDouble())
+                                                                                    bundle.putString("title", currentWeather.name)
+                                                                                    outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERCURRENTLOCATION, bundle)
 
-                                                                            } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
-                                                                        }
-                                                            } ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
+                                                                                }
+                                                                                        ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
+                                                                            }
+                                                                }
+                                                                        ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION, throwable.message)
+                                                            }
                                                         }
+                                                        ?: handleError(REQUESTEDCURRENTWEATHERCURRENTLOCATION)
                                             }
                                 } else {
                                     // should be in database already
@@ -186,9 +192,12 @@ class LocaterService : Service() {
                                                             }
 
                                                 } else outboundmessenger.sendMessage(REQUESTEDCURRENTWEATHERWITHLOCATION, bundle)
-                                            } ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, throwable.message)
-                                        } ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, "Could not get location")
-                            } ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, "Invalid address entered")
+                                            }
+                                                    ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, throwable.message)
+                                        }
+                                        ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, "Could not get location")
+                            }
+                                    ?: handleError(REQUESTEDCURRENTWEATHERWITHLOCATION, "Invalid address entered")
                             else -> {
                             }
                         }
@@ -219,41 +228,57 @@ class LocaterService : Service() {
     }
 
 
-    private fun initLocationServices() {
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-        googleAPIClient = GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(connectionCallBackListener)
-                .addOnConnectionFailedListener(connectionFailedListener)
-                .build()
+    private fun initLocationServices(context: Context): Flow<FusedLocationProviderClient> = callbackFlow {
 
-        locationRequest = LocationRequest.create()
+
+        val locationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval((10 * 1000).toLong())        // 10 seconds, in milliseconds
                 .setFastestInterval((1 * 1000).toLong()) // 1 second, in milliseconds
 
-        googleAPIClient.connect()
+        val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
 
+        val builder = GoogleApiClient.Builder(context).addApi(LocationServices.API)
+                .addOnConnectionFailedListener(connectionFailedListener)
+                .addConnectionCallbacks(object : GoogleApiClient.ConnectionCallbacks {
+                    override fun onConnected(bundle: Bundle?) {
+                        fusedLocationProviderClient.requestLocationUpdates(locationRequest, object : LocationCallback() {
+                            override fun onLocationResult(locationResult: LocationResult?) {
+                                super.onLocationResult(locationResult)
+                            }
+
+                            override fun onLocationAvailability(locationAvailability: LocationAvailability?) {
+                                super.onLocationAvailability(locationAvailability)
+                                locationAvailability?.let {
+                                    if (it.isLocationAvailable) {
+                                        offer(fusedLocationProviderClient)
+                                    }
+                                }
+                            }
+                        }, null)
+                    }
+
+                    override fun onConnectionSuspended(p0: Int) {
+                    }
+                })
+        builder.build().connect()
+
+        awaitClose {
+            builder.addConnectionCallbacks(connectionCallBackListener)
+        }
     }
 
     private val connectionCallBackListener = object : GoogleApiClient.ConnectionCallbacks {
         override fun onConnected(bundle: Bundle?) {
-            apiConnected = true
+            //apiConnected = true
         }
 
         override fun onConnectionSuspended(p0: Int) {
-            apiConnected = false
+            //apiConnected = false
         }
     }
 
 
-    private val locationChangeListner = object : LocationSource.OnLocationChangedListener {
-        override fun onLocationChanged(newLocation: Location?) {
-            newLocation?.let {
-
-            }
-        }
-    }
     private val connectionFailedListener = object : GoogleApiClient.OnConnectionFailedListener {
         override fun onConnectionFailed(connectionResult: ConnectionResult) {
         }

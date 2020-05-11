@@ -2,15 +2,14 @@ package com.garyjacobs.weathertest
 
 
 import Events.ForecastListSelectedEvent
-import Events.getFlingObervable
 import Events.getLongPressObservable
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.support.v7.widget.RecyclerView
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -18,10 +17,10 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.TileOverlayOptions
 import com.google.android.gms.maps.model.UrlTileProvider
+import kotlinx.android.synthetic.main.weather_list.*
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import model.Forecast
-import kotlinx.android.synthetic.main.weather_list.*
 import kotlinx.android.synthetic.main.weather_list_item.view.*
 import model.getWindDirection
 import widgets.SlideMotion
@@ -152,6 +151,7 @@ class WeatherListFragment : Fragment() {
 
 
     private inner class MyRecyclerViewAdapter(internal var forecast: Forecast, internal var onClickListener: View.OnClickListener) : RecyclerView.Adapter<MyViewHolder>() {
+
 
         override fun onCreateViewHolder(parent: ViewGroup, i: Int): MyViewHolder {
             val view = LayoutInflater.from(parent.context).inflate(R.layout.weather_list_item, parent, false)

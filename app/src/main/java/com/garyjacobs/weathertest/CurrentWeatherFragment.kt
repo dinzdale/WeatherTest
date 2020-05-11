@@ -2,15 +2,16 @@ package com.garyjacobs.weathertest
 
 import Events.*
 import android.animation.ObjectAnimator
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
+
 import android.content.Context
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -62,7 +63,7 @@ class CurrentWeatherFragment : Fragment() {
             lon = it.getDouble("lon")
         }
 
-        currentWeatherViewModel = ViewModelProviders.of(this, CurrentWeatherViewModelFactory(myActivity.weatherApplication, lat, lon))
+        currentWeatherViewModel = ViewModelProvider(this, CurrentWeatherViewModelFactory(myActivity.weatherApplication, lat, lon))
                 .get(CurrentWeatherViewModel::class.java)
 
         return inflater.inflate(R.layout.current_weather, null)
@@ -70,7 +71,7 @@ class CurrentWeatherFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        currentWeatherViewModel.allCurrentWeatherList?.observe(this, object : Observer<List<CurrentWeather>> {
+        currentWeatherViewModel.allCurrentWeatherList?.observe(this.viewLifecycleOwner, object : Observer<List<CurrentWeather>> {
             override fun onChanged(allCurrentWeatherList: List<CurrentWeather>?) {
                 allCurrentWeatherList?.let {
                     it.forEachIndexed { index, cw ->
@@ -79,7 +80,7 @@ class CurrentWeatherFragment : Fragment() {
                 }
             }
         })
-        currentWeatherViewModel.currentWeatherList?.observe(this, object : Observer<List<CurrentWeather>> {
+        currentWeatherViewModel.currentWeatherList?.observe(this.viewLifecycleOwner, object : Observer<List<CurrentWeather>> {
             override fun onChanged(currentWeatherList: List<CurrentWeather>?) {
                 currentWeatherList?.let {
                     if (it.size > 0) {
@@ -91,9 +92,6 @@ class CurrentWeatherFragment : Fragment() {
         current_weather_map.onCreate(savedInstanceState)
     }
 
-    override fun onAttach(context: Context?) {
-        super.onAttach(context)
-    }
 
     fun updateUI(currentWeather: CurrentWeather) {
 
