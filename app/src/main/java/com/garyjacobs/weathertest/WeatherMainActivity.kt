@@ -141,9 +141,9 @@ class WeatherMainActivity : WeatherActivity() {
         unbindService(serviceConnection)
     }
 
-    inner class InboundHandler : Handler() {
-        override fun handleMessage(message: Message?) {
-            message?.let {
+    inner class InboundHandler : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(message: Message) {
+            message.let {
                 when (it.what) {
                     LocaterService.NOINTERENT -> {
                         networkWarning.show()
@@ -223,7 +223,7 @@ class WeatherMainActivity : WeatherActivity() {
         super.onSaveInstanceState(outState)
     }
 
-    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         onRestore = true
     }

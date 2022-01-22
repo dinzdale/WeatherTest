@@ -73,8 +73,8 @@ class WeatherListFragment : Fragment() {
         extended_map.onCreate(savedInstanceState)
         extended_map.getMapAsync(object : OnMapReadyCallback {
 
-            override fun onMapReady(googleMap: GoogleMap?) {
-                googleMap?.let {
+            override fun onMapReady(googleMap: GoogleMap) {
+                googleMap.let {
                     val latlon = LatLng(lat, lon)
                     it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 0.toFloat()))
                     it.addMarker(MarkerOptions()

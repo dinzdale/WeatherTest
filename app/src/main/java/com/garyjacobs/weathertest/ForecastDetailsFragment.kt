@@ -51,8 +51,8 @@ class ForecastDetailsFragment : Fragment() {
     }
 
     val mapReadyImp = object : OnMapReadyCallback {
-        override fun onMapReady(googleMap: GoogleMap?) {
-            googleMap?.let {
+        override fun onMapReady(googleMap: GoogleMap) {
+            googleMap.let {
                 if (::location.isInitialized) {
                     val latlon = LatLng(location.latitude, location.longitude)
                     it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 10.toFloat()))

@@ -1,9 +1,10 @@
 package com.garyjacobs.weathertest
 
-import Events.*
+import Events.CurrentWeatherSelectedEvent
+import Events.MapClickedEvent
+import Events.getFlingObervable
+import Events.getSingleTapObservable
 import android.animation.ObjectAnimator
-
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -51,7 +52,11 @@ class CurrentWeatherFragment : Fragment() {
     }
 
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         myActivity = activity as WeatherActivity
         savedInstanceState?.let {
@@ -63,56 +68,77 @@ class CurrentWeatherFragment : Fragment() {
             lon = it.getDouble("lon")
         }
 
-        currentWeatherViewModel = ViewModelProvider(this, CurrentWeatherViewModelFactory(myActivity.weatherApplication, lat, lon))
-                .get(CurrentWeatherViewModel::class.java)
+        currentWeatherViewModel = ViewModelProvider(
+            this,
+            CurrentWeatherViewModelFactory(myActivity.weatherApplication, lat, lon)
+        )
+            .get(CurrentWeatherViewModel::class.java)
 
         return inflater.inflate(R.layout.current_weather, null)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        currentWeatherViewModel.allCurrentWeatherList?.observe(this.viewLifecycleOwner, object : Observer<List<CurrentWeather>> {
-            override fun onChanged(allCurrentWeatherList: List<CurrentWeather>?) {
-                allCurrentWeatherList?.let {
-                    it.forEachIndexed { index, cw ->
-                        Log.d(TAG, "CurrentWeatherDB[$index] = $cw.name")
+        currentWeatherViewModel.allCurrentWeatherList?.observe(
+            this.viewLifecycleOwner,
+            object : Observer<List<CurrentWeather>> {
+                override fun onChanged(allCurrentWeatherList: List<CurrentWeather>?) {
+                    allCurrentWeatherList?.let {
+                        it.forEachIndexed { index, cw ->
+                            Log.d(TAG, "CurrentWeatherDB[$index] = $cw.name")
+                        }
                     }
                 }
-            }
-        })
-        currentWeatherViewModel.currentWeatherList?.observe(this.viewLifecycleOwner, object : Observer<List<CurrentWeather>> {
-            override fun onChanged(currentWeatherList: List<CurrentWeather>?) {
-                currentWeatherList?.let {
-                    if (it.size > 0) {
-                        updateUI(it[0])
+            })
+        currentWeatherViewModel.currentWeatherList?.observe(
+            this.viewLifecycleOwner,
+            object : Observer<List<CurrentWeather>> {
+                override fun onChanged(currentWeatherList: List<CurrentWeather>?) {
+                    currentWeatherList?.let {
+                        if (it.size > 0) {
+                            updateUI(it[0])
+                        }
                     }
                 }
-            }
-        })
+            })
         current_weather_map.onCreate(savedInstanceState)
     }
 
 
     fun updateUI(currentWeather: CurrentWeather) {
 
-        myActivity.weatherApplication.imageManager.setImage(currentWeather.weather[0].icon, current_weather_icon)
+        myActivity.weatherApplication.imageManager.setImage(
+            currentWeather.weather[0].icon,
+            current_weather_icon
+        )
         city.text = currentWeather.name
         description.text = currentWeather.weather[0].description
         current_temp.text = currentWeather.main.temp.toInt().toString()
-        low_temp.text = myActivity.resources.getString(R.string.current_low, currentWeather.main.temp_min.toInt())
-        high_temp.text = myActivity.resources.getString(R.string.current_high, currentWeather.main.temp_max.toInt())
+        low_temp.text = myActivity.resources.getString(
+            R.string.current_low,
+            currentWeather.main.temp_min.toInt()
+        )
+        high_temp.text = myActivity.resources.getString(
+            R.string.current_high,
+            currentWeather.main.temp_max.toInt()
+        )
         val windDirection = currentWeather.wind.deg.toInt()
 
-        wind.text = myActivity.resources.getString(R.string.current_wind, currentWeather.wind.speed.toInt(), getWindDirection(windDirection))
+        wind.text = myActivity.resources.getString(
+            R.string.current_wind,
+            currentWeather.wind.speed.toInt(),
+            getWindDirection(windDirection)
+        )
 
         current_weather_map.getMapAsync(object : OnMapReadyCallback {
-
-            override fun onMapReady(googleMap: GoogleMap?) {
-                googleMap?.let {
+            override fun onMapReady(googleMap: GoogleMap) {
+                googleMap.let {
                     val latlon = LatLng(currentWeather.coord.lat, currentWeather.coord.lon)
                     it.moveCamera(CameraUpdateFactory.newLatLngZoom(latlon, 10.toFloat()))
-                    it.addMarker(MarkerOptions()
-                            .position(latlon))
+                    it.addMarker(
+                        MarkerOptions()
+                            .position(latlon)
+                    )
                     googleMap.setOnMapClickListener {
                         if (cw_cardview.visibility != View.VISIBLE)
                             doSlideAnimation(cw_cardview, SlideMotion.SLIDEINDOWNRIGHT)
@@ -123,14 +149,14 @@ class CurrentWeatherFragment : Fragment() {
         })
 
         getFlingObervable(cw_cardview)
-                .subscribe {
-                    doSlideAnimation(cw_cardview, SlideMotion.SLIDEOUTUPLEFT)
-                }
+            .subscribe {
+                doSlideAnimation(cw_cardview, SlideMotion.SLIDEOUTUPLEFT)
+            }
 
         getSingleTapObservable(extended_forcast)
-                .subscribe {
-                    myActivity.weatherApplication.bus.post(CurrentWeatherSelectedEvent())
-                }
+            .subscribe {
+                myActivity.weatherApplication.bus.post(CurrentWeatherSelectedEvent())
+            }
 
         extendForecastAnimation = getAlphaAnimator(extended_forcast)
         extendForecastAnimation?.start()
